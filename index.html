@@ -2159,10 +2159,8 @@ const FORMS=[
   {id:'F12',num:'壹拾捌',name:'學習心得與建議紀錄表',sub:'實習心得',roles:'both'},
   {id:'F13',num:'貳拾',name:'書面個案報告評分表',sub:'書面報告 100分',roles:'both'},
   {id:'F14',num:'貳拾壹',name:'個案報告 PPT 評分表',sub:'口頭報告評分',roles:'both'},
-  {id:'D01',num:'貳拾貳(1)',name:'DOPS：抽痰技術',sub:'直接觀察評估',roles:'both'},
-  {id:'D02',num:'貳拾貳(2)',name:'DOPS：MDI 配合呼吸器',sub:'定量噴霧器操作',roles:'both'},
-  {id:'D03',num:'貳拾貳(3)',name:'DOPS：呼吸器技術操作',sub:'呼吸器設定使用',roles:'both'},
-  {id:'D04',num:'貳拾貳(4)',name:'DOPS：呼吸器脫離測量',sub:'Weaning Index',roles:'both'},
+  {id:'D01',num:'貳拾貳(1)',name:'DOPS：非侵襲性呼吸器(NIV)',sub:'Astral／Trilogy 操作',roles:'both'},
+  {id:'D02',num:'貳拾貳(2)',name:'DOPS：小兒呼吸器初步設定與操作',sub:'Servo 系列',roles:'both'},
   {id:'F15',num:'貳拾伍',name:'實習課程評值表',sub:'學習態度+技能+溝通',roles:'both'},
   {id:'F16',num:'貳拾陸',name:'Learning-Style 評估表',sub:'學習風格自我評估',roles:'student'},
   {id:'F-PRE',num:'筆試(前)',name:'前測',sub:'每題4分．25題．60分及格',roles:'student'},
@@ -3172,7 +3170,7 @@ const REQUIRED_STUDENT_FIELDS = {
     .concat(Array.from({length:28},function(_,i){return 'f01_post_'+i;}))
     .concat(Array.from({length:28},function(_,i){return 'f01_p1_'+i;})),
   // F02 臨床表現
-  F02: ['s_name','school','intern_cat','s_date','s_comment','t_fb','s_sign','s_sign_date','t_sign','t_sign_date'].concat(Array.from({length:10},function(_,i){return 'f02_'+i;})),
+  F02: ['s_name','school','intern_cat','s_date','s_comment','t_fb','s_sign','s_sign_date','t_sign','t_sign_date'].concat(Array.from({length:14},function(_,i){return 'f02_'+i;})),
   // F04 床邊教學
   F04M: ['s_name','school','s_date','intern_cat','bed','pt_name','gender','birth_date','diagnosis','rt_ind','vent_type','medical_focus','rt_plan','t_fb','t_sign','t_sign_date','s_sign','s_sign_date'],
   F04S: ['s_name','school','s_date','intern_cat','bed','pt_name','gender','birth_date','diagnosis','rt_ind','vent_type','medical_focus','rt_plan','t_fb','t_sign','t_sign_date','s_sign','s_sign_date'],
@@ -3227,18 +3225,12 @@ const REQUIRED_STUDENT_FIELDS = {
     'f14_sc_0','f14_sc_1','f14_sc_2','f14_sc_3','f14_sc_4','f14_sc_5',
     'f14_sc_6','f14_sc_7','f14_sc_8','f14_sc_9','f14_sc_10','f14_sc_11',
     's_fb','t_fb','s_sign','s_sign_date','t_sign','t_sign_date'],
-  // DOPS：每張的評核項目數量不同（D01=21、D02=19、D03=18、D04=34）
+  // DOPS：每張的評核項目數量不同（D01 NIV=16、D02 Servo=18）
   D01: ['s_name','school','s_date','intern_cat','complexity']
-    .concat(Array.from({length:21},function(_,i){return 'D01_i'+(i+1);}))
+    .concat(Array.from({length:16},function(_,i){return 'D01_i'+(i+1);}))
     .concat(['score_grade','result','s_feeling','t_fb','s_sign','s_sign_date','t_sign','t_sign_date']),
   D02: ['s_name','school','s_date','intern_cat','complexity']
-    .concat(Array.from({length:19},function(_,i){return 'D02_i'+(i+1);}))
-    .concat(['score_grade','result','s_feeling','t_fb','s_sign','s_sign_date','t_sign','t_sign_date']),
-  D03: ['s_name','school','s_date','intern_cat','complexity']
-    .concat(Array.from({length:18},function(_,i){return 'D03_i'+(i+1);}))
-    .concat(['score_grade','result','s_feeling','t_fb','s_sign','s_sign_date','t_sign','t_sign_date']),
-  D04: ['s_name','school','s_date','intern_cat','complexity']
-    .concat(Array.from({length:34},function(_,i){return 'D04_i'+(i+1);}))
+    .concat(Array.from({length:18},function(_,i){return 'D02_i'+(i+1);}))
     .concat(['score_grade','result','s_feeling','t_fb','s_sign','s_sign_date','t_sign','t_sign_date']),
   // F15 實習課程評值
   F15: ['s_name','school','s_date','intern_cat','s_comment',
@@ -3596,7 +3588,7 @@ function renderSidebar(){
       {label:'筆試評估',ids:['F-PRE','F-POST']},
       {label:'學習評估表單',ids:['F11','F01A','F01B','F02','F04M','F04S','F06M','F06S','F07M','F07S','F08','F09','F10A','F10B','F12']},
       {label:'個案報告評分',ids:['F13','F14']},
-      {label:'DOPS 操作技術評核',ids:['D01','D02','D03','D04']},
+      {label:'DOPS 操作技術評核',ids:['D01','D02']},
       {label:'核心課程-課後測驗',ids:['F-CT01','F-CT02','F-CT03']},
       {label:'實習課程總評值',ids:['F15']},
     ];
@@ -3625,7 +3617,7 @@ function renderSidebar(){
     {label:'筆試評估',ids:['F-PRE','F-POST']},
     {label:'學習評估表單',ids:['F11','F01A','F01B','F02','F04M','F04S','F06M','F06S','F07M','F07S','F08','F09','F10A','F10B','F12']},
     {label:'個案報告評分',ids:['F13','F14']},
-    {label:'DOPS 操作技術評核',ids:['D01','D02','D03','D04']},
+    {label:'DOPS 操作技術評核',ids:['D01','D02']},
     {label:'核心課程-課後測驗',ids:['F-CT01','F-CT02','F-CT03']},
     {label:'實習課程總評值',ids:['F15']},
   ];
@@ -3762,7 +3754,7 @@ function selectStudent(sid){
     {label:'筆試評估',ids:['F-PRE','F-POST']},
     {label:'學習評估表單',ids:['F11','F01A','F01B','F02','F04M','F04S','F06M','F06S','F07M','F07S','F08','F09','F10A','F10B','F12']},
     {label:'個案報告評分',ids:['F13','F14']},
-    {label:'DOPS 操作技術評核',ids:['D01','D02','D03','D04']},
+    {label:'DOPS 操作技術評核',ids:['D01','D02']},
     {label:'核心課程-課後測驗',ids:['F-CT01','F-CT02','F-CT03']},
     {label:'實習課程總評值',ids:['F15']},
   ];
@@ -4115,7 +4107,7 @@ function renderFormList(){
     {label:'筆試評估',count:'2份',ids:['F-PRE','F-POST']},
     {label:'學習評估表單',count:'14份',ids:['F11','F01A','F01B','F02','F04M','F04S','F06M','F06S','F07M','F07S','F08','F09','F10A','F10B','F12']},
     {label:'個案報告評分',count:'2份',ids:['F13','F14']},
-    {label:'DOPS 操作技術評核',count:'4份',ids:['D01','D02','D03','D04']},
+    {label:'DOPS 操作技術評核',count:'2份',ids:['D01','D02']},
     {label:'核心課程-課後測驗',count:'3份',ids:['F-CT01','F-CT02','F-CT03']},
     {label:'實習課程總評值',count:'1份',ids:['F15']},
   ];
@@ -4795,28 +4787,10 @@ var TEACHER_PROGRESS_OVERRIDE = {
          't_note','t_sign','t_sign_date'],
   F10B: ['q_basic','q_self','q_progress','q_detail','q_t_sign','q_feeling','q_t_fb','q_all_sign',
          't_note','t_sign','t_sign_date'],
-  // D01 DOPS:抽痰技術 — 老師端 26 欄 (21 評分 + score_grade + result + t_fb + t_sign + t_sign_date)
-  D01: ['D01_i1','D01_i2','D01_i3','D01_i4','D01_i5','D01_i6','D01_i7',
-        'D01_i8','D01_i9','D01_i10','D01_i11','D01_i12','D01_i13','D01_i14',
-        'D01_i15','D01_i16','D01_i17','D01_i18','D01_i19','D01_i20','D01_i21',
-        'score_grade','result','t_fb','t_sign','t_sign_date'],
-  // D02 DOPS:MDI 配合呼吸器 — 老師端 24 欄 (19 評分 + 5)
-  D02: ['D02_i1','D02_i2','D02_i3','D02_i4','D02_i5','D02_i6','D02_i7',
-        'D02_i8','D02_i9','D02_i10','D02_i11','D02_i12','D02_i13','D02_i14',
-        'D02_i15','D02_i16','D02_i17','D02_i18','D02_i19',
-        'score_grade','result','t_fb','t_sign','t_sign_date'],
-  // D03 DOPS:呼吸器技術操作 — 老師端 23 欄 (18 評分 + 5)
-  D03: ['D03_i1','D03_i2','D03_i3','D03_i4','D03_i5','D03_i6','D03_i7',
-        'D03_i8','D03_i9','D03_i10','D03_i11','D03_i12','D03_i13','D03_i14',
-        'D03_i15','D03_i16','D03_i17','D03_i18',
-        'score_grade','result','t_fb','t_sign','t_sign_date'],
-  // D04 DOPS:呼吸器脫離測量 — 老師端 39 欄 (34 評分 + 5)
-  D04: ['D04_i1','D04_i2','D04_i3','D04_i4','D04_i5','D04_i6','D04_i7',
-        'D04_i8','D04_i9','D04_i10','D04_i11','D04_i12','D04_i13','D04_i14',
-        'D04_i15','D04_i16','D04_i17','D04_i18','D04_i19','D04_i20','D04_i21',
-        'D04_i22','D04_i23','D04_i24','D04_i25','D04_i26','D04_i27','D04_i28',
-        'D04_i29','D04_i30','D04_i31','D04_i32','D04_i33','D04_i34',
-        'score_grade','result','t_fb','t_sign','t_sign_date']
+  // D01 DOPS:NIV(Astral／Trilogy) — 老師端 (16 評分 + 5)
+  D01: ['D01_i1','D01_i2','D01_i3','D01_i4','D01_i5','D01_i6','D01_i7','D01_i8','D01_i9','D01_i10','D01_i11','D01_i12','D01_i13','D01_i14','D01_i15','D01_i16','score_grade','result','t_fb','t_sign','t_sign_date'],
+  // D02 DOPS:小兒呼吸器設定與操作(Servo) — 老師端 (18 評分 + 5)
+  D02: ['D02_i1','D02_i2','D02_i3','D02_i4','D02_i5','D02_i6','D02_i7','D02_i8','D02_i9','D02_i10','D02_i11','D02_i12','D02_i13','D02_i14','D02_i15','D02_i16','D02_i17','D02_i18','score_grade','result','t_fb','t_sign','t_sign_date'],
 };
 
 function updateFormProgress(formId){
@@ -9579,7 +9553,7 @@ function buildFormBody(f,d,canT,formKey,canS){
     F01A:buildF01A,F01B:buildF01B,F02:buildF02,F04M:buildF04Bedside,F04S:buildF04Bedside,
     F06M:buildF06M,F06S:buildF06S,F07M:buildF07M,F07S:buildF07S,F08:buildF08,F09:buildF09,F10A:buildF10,F10B:buildF10,
     F11:buildF11,F12:buildF12,F13:buildF13,F14:buildF14,
-    D01:buildDOPS,D02:buildDOPS,D03:buildDOPS,D04:buildDOPS,
+    D01:buildDOPS,D02:buildDOPS,
     F15:buildF15,
     F16:buildF16,
     'F-PRE':buildExamPre,
@@ -9841,7 +9815,7 @@ function buildF01B(f,d,canT,fkey,canS){
 function buildF02(f,d,canT,fkey,canS){
   const fid=fkey||f.id;
   if(canS===undefined)canS=true;
-  const items=['能說出了解或執行病人之病情變化及其所接受之治療','能正確完整的說出了解或執行醫囑與執行病人的醫療措施','能正確說出了解或執行呼吸治療技術','能正確完整的說出了解或執行呼吸治療衛教','能根據病人反應及病情改變說出了解或執行變更設定','能正確完整的說出了解或執行呼吸治療記錄與各項表單之填寫','能獨力說出了解或執行各項協調作業','能有組織的說出了解或執行規劃每日的工作順序','能主動尋求醫療資源能的支援','在下班前完成每日之工作職責'];
+  const items=['瞭解新生兒與小兒身體檢查評估','瞭解新生兒常見診斷及特徵','瞭解小兒呼吸器管路裝置','小兒呼吸器管路裝置功能測試','瞭解Nasal CPAP管路裝置及操作','熟悉在保溫箱中更換管路','完成病人評估與呼吸器設定','確實填寫呼吸治療相關記錄單','瞭解ECMO臨床使用及呼吸器設定','瞭解HFOV呼吸器管路裝置、設定及操作','瞭解NO儀器裝置、設定與注意事項','瞭解Surfactant replacement therapy','擬定呼吸照護計劃','確實交班'];
   let h=basicInfoCard(fid,d,'');
   h+=`<div class="card"><div class="card-head"><div class="card-head-title">臨床表現評估（非常好5 / 好4 / 普通3 / 不好2 / 非常差1）</div></div><div class="card-body" style="overflow-x:auto;"><table class="rating-table">
   <tr><th style="text-align:left;">評估項目</th><th>非常好(5)</th><th>好(4)</th><th>普通(3)</th><th>不好(2)</th><th>非常差(1)</th></tr>`;
@@ -10754,70 +10728,36 @@ function calcF14Score(fid){
 
 const DOPS_DATA={
   D01:{
-    topic:'抽痰技術(Suction)',
+    topic:'非侵襲性呼吸器(NIV) Astral／Trilogy 操作',
+    extra:'NIV 機型：□Astral　□Trilogy　□其他',
     groups:[
       {hd:'執行技術前',items:[
-        '1. 確認醫囑',
-        '2. 確認病人(兩種方式)並解釋',
-        '3. 技術執行前洗手、戴口罩、隔離衣(隔離病人)',
-        '4. 備物：無菌抽痰包、聽診器',
-        '5. 選擇合適抽痰管(Endo size乘3，再除2)',
-        '6. 調整合適抽吸器壓力(成人:-100 ~ -120 mmHg)',
-        '7. 協助病人床頭抬高(30-45度)',
-        '8. 抽痰前給予100%氧氣，1分鐘',
+        '1. 確認醫囑與適應症',
+        '2. 確認病人(兩種方式)並向病人/家屬解釋治療目的',
+        '3. 技術執行前洗手、戴口罩，必要時穿戴防護裝備',
+        '4. 備物：NIV呼吸器(Astral／Trilogy)、合適面罩/鼻罩/鼻枕、頭帶、管路、過濾器、加溫潮濕設備、SpO₂監測',
+        '5. 評估並選擇合適介面與尺寸，注意密合度與皮膚保護',
+        '6. 連接管路與加溫潮濕，開機並完成功能與漏氣測試',
+        '7. 依醫囑設定模式與參數(CPAP 或 IPAP/EPAP、呼吸次數、Ti、上升時間、觸發/切換、FiO₂、警報範圍)',
       ]},
       {hd:'執行技術中',items:[
-        '9.1 打開抽痰包封口(注意勿汙染手套)',
-        '9.2 單手戴無菌手套，取出無菌抽痰管，另一手拿取連接抽痰機的長管與之連接',
-        '9.3 以無菌方式放入抽痰管，插入時勿按住抽痰管之抽吸控制口，且放入深度適宜(Endo長度到底，回抽1~2公分)；間歇、旋轉、抽吸。※勿超過15秒',
-        '9.4 抽痰順序：氣管內管(或氣切)->鼻腔->口腔',
-        '9.5 過程評估：咳嗽能力、痰液性質',
-        '9.6 過程注意生命徵象、口腔鼻黏膜是否出血',
-        '9.7 抽痰完畢並接回呼吸器，將抽痰管放入清水中沖洗後取下，反脫包住抽痰管',
-        '9.8 關掉抽吸器',
-        '9.9 抽痰後給予病人100%氧氣，1分鐘',
+        '8. 協助病人採半坐臥(30–45度)，固定介面避免過度壓迫',
+        '9. 監測：人機同步性、漏氣量、潮氣容積、SpO₂、生命徵象與病人耐受度',
+        '10. 依病人反應調整參數與漏氣補償，並排除警報(漏氣、阻塞、高/低壓)',
+        '11. 觀察並預防併發症(皮膚壓傷、腹脹、結膜炎、人機不同步)',
+        '12. 衛教病人/家屬配合方式與注意事項',
       ]},
       {hd:'執行技術後',items:[
-        '10. 恢復病人床邊安全及整理病人環境',
-        '11. 聽診呼吸音',
-        '12. 技術執行後洗手',
-        '13. 正確紀錄',
+        '13. 依病情調整脫離或持續使用，記錄使用參數與病人反應',
+        '14. 介面與管路依感染管制分類清潔/消毒',
+        '15. 技術執行後洗手',
+        '16. 正確記錄與交班',
       ]},
     ]
   },
   D02:{
-    topic:'定量噴霧器(MDI)配合呼吸器使用技術操作',
-    groups:[
-      {hd:'MDI使用前',items:[
-        '1. 確認醫囑與適應症',
-        '2. 確認病人(兩種方式)並解釋治療',
-        '3. 技術執行前洗手、戴口罩、隔離衣(隔離病人)',
-        '4. 核對藥物的三讀五對\n4.1 三讀：取藥、給藥、歸藥時',
-        '4.2 五對：醫囑、藥名、人名、給藥時間、給藥途徑',
-        '5. 備物：MDI藥物、Aero-chamber(吸入輔助器)',
-        '6. 維持呼吸道通暢，必要時予以抽痰',
-        '7. 將儲藥罐取出，儲藥罐用手握住，以提高儲藥罐的溫度，並上下搖晃噴霧器(至少5~10秒)；若初次使用或多日未用，要先對大氣中噴1~4次',
-        '8. 執行吸藥前，維持呼吸道通暢，必要時予以抽痰',
-      ]},
-      {hd:'MDI使用中',items:[
-        '9. Aero-chamber接在呼吸器之Y型接頭吸氣端的管路上',
-        '10. MDI儲藥罐卡榫接於Aero-chamber上，並保持垂直位置',
-        '11. 在呼吸器吸氣前或吐(或配合病患呼吸狀態)，按下MDI，將藥物注入Aero-chamber儲藥腔',
-        '12. 兩次使用之間，至少間隔30~60秒',
-        '13. 給藥後，至少等待6次完整吸、吐氣後，移去MDI的儲藥罐及Aero-chamber',
-        '14. 觀察是否有藥物的副作用發生(如：心博過速、肌肉震顫等)',
-      ]},
-      {hd:'MDI使用後',items:[
-        '15. 觀察病人生命徵象、藥效(如呼吸音、肺功能改善)等',
-        '16. 恢復病人床邊安全及整理病人環境',
-        '17. Aero-chamber清潔時機與方法',
-        '18. 技術執行後洗手',
-      ]},
-    ]
-  },
-  D03:{
-    topic:'呼吸器技術操作(Adult)',
-    extra:'呼吸器機型：□PB840  □Servo系列(I/C/U/AIR)  □Drager系列(V/VN)  □Hamilton-G5  □其他',
+    topic:'小兒呼吸器初步設定與操作(Servo系列)',
+    extra:'呼吸器機型：Servo系列(I/C/U/AIR)',
     groups:[
       {hd:'呼吸器使用前',items:[
         '1. 確認醫囑與適應症',
@@ -10830,7 +10770,8 @@ const DOPS_DATA={
       ]},
       {hd:'呼吸器使用中',items:[
         '8. 監測：聽診呼吸音、病人呼吸型態是否和呼吸器同步、生命徵象及ABG',
-        '9. 呼吸器障礙排除\n9.1 先檢查病人',
+        '9. 呼吸器障礙排除
+9.1 先檢查病人',
         '9.2 依照呼吸器警報發生原因(管路積水、分泌物增加、漏氣)，調整呼吸器設定、改善病人呼吸的狀況、恢復警報或更換異常呼吸器',
         '10. 病人使用之呼吸器面板，每日需使用漂白水布',
         '11. 技術執行後應洗手',
@@ -10839,54 +10780,10 @@ const DOPS_DATA={
       {hd:'呼吸器使用後',items:[
         '13. 管路及附屬配件依分類處理',
         '14. 呼吸器面板及呼吸器表面以漂白水布擦拭',
-        '15. 泡消\n15.1 Exp. cassette 75% 酒精浸泡30分鐘，烘乾即可。(servo系列)',
+        '15. 泡消
+15.1 Exp. cassette 75% 酒精浸泡30分鐘，烘乾即可。(servo系列)',
         '15.2 細菌過濾器高溫殺菌消毒',
         '15.3 管路以巴斯德消毒',
-      ]},
-    ]
-  },
-  D04:{
-    topic:'呼吸器脫離指標測量 ( Weaning Index )',
-    groups:[
-      {hd:'執行技術前',items:[
-        '1. 確認醫囑',
-        '2. 評估病人是否符合呼吸器脫離',
-        '3. 技術執行前洗手、戴口罩、隔離衣(隔離病人)',
-        '4. 備物：Halo-scale、Boehringer Inspiratory Force Meter、單向閥、22mm、短蛇行管、空針、HMEF、酒精棉片、Cuff pressure manometer',
-        '5. 執行技術前，維持呼吸道通暢，必要時予以抽痰',
-      ]},
-      {hd:'執行技術中',items:[
-        '6. 確認病人(兩種方式)並解釋',
-        '7. 技術執行步驟\n7.1 協助病人採半坐臥式(45-90度)',
-        '7.2 測量RR及VE 以肺計量器(Halo-scale)測量RR、VE將肺計量器接上氣管內管，將on打開，計算1分鐘病人呼吸次數及VE，1分鐘後關到off處，觀察肺計量器的值即為每分鐘換氣量(VE)。',
-        '7.3 計算Vt及RSBI 平均呼吸潮氣容積=每分鐘換氣量÷呼吸次數；RSBI ( RSBI=RR bpm/Vt)',
-        '7.4 測量最大吸氣力量 (Maximum Inspiratory Pressure; MIP)\n7.4.1 向病人解釋說明測量的過程及配合事項，協助病人採半坐臥式(45-90度)',
-        '7.4.2 將指標放在負壓端並歸零',
-        '7.4.3 接上壓力計，請病人吐氣吐乾淨後，用最大的力量吸氣，病人吸氣的同時將通氣孔塞住，測量最大的吸氣壓力',
-        '7.4.4 至少測量3次，每次測量間必須有適當的休息(至少30秒以上)，取最好的一次',
-        '7.4.5 無法配合的病人，則持續阻塞通氣孔15-20秒，來測得病人最大的吸氣力量',
-        '7.5 測最大吐氣力量 (Maximum Expiratory Pressure; MEP)\n7.5.1 向病人解釋並說明測量的過程及配合事項，協助病人採半坐臥式(45-90度)',
-        '7.5.2 將指標放在正壓端並歸零',
-        '7.5.3 接上壓力計，請病人吸飽氣後，用最大的力量吐氣，病人吸氣的同時將通氣孔塞住，測量最大的吐氣壓力',
-        '7.5.4 至少測量3次，每次測量間必須有適當的休息(至少30秒以上)，取最好的一次',
-        '7.5.5 無法配合的病人，則持續阻塞通氣孔15-20秒，來測得病人最大的吸氣力量',
-        '7.6 測量氣囊漏氣量（CLT）\n7.6.1 向病人解釋並說明測量的過程及配合事項，協助病人採半坐臥式(45-90度)',
-        '7.6.2 調整呼吸器設定VCV（8ml/kg-PBW）',
-        '7.6.3 紀錄平靜時吐氣潮氣容積 Vt baseline',
-        '7.6.4 待病人呼吸平靜後，鬆開cuff',
-        '7.6.5 觀察病人平靜呼吸6次後，紀錄吐氣潮氣容積Vt deflated',
-        '7.6.6 將cuff打飽，並測量cuff pressure * 正常值：20-30 cmH₂O之間',
-        '7.6.7 調回病人之前使用的呼吸器設定',
-        '8. 測量其間須觀察生命徵象、當生命徵象不穩定時，立即停止測量。',
-      ]},
-      {hd:'執行技術後',items:[
-        '9. 評估測量結果\n9.1 RSBI<105',
-        '9.2 CLT>140mL',
-        '10. 向病人/照護者，及醫療團隊解釋測量結果',
-        '11. 回復病人姿勢與整理床邊環境',
-        '12. 用酒精棉片清潔用物與歸位',
-        '13. 執行後應洗手與脫除防護裝備',
-        '14. 紀錄與交班',
       ]},
     ]
   },
@@ -15228,7 +15125,7 @@ function renderStatusSection(filterStatus){
     {label:'筆試評估',ids:['F-PRE','F-POST']},
     {label:'學習評估表單',ids:['F11','F01A','F01B','F02','F04M','F04S','F06M','F06S','F07M','F07S','F08','F09','F10A','F10B','F12']},
     {label:'個案報告評分',ids:['F13','F14']},
-    {label:'DOPS 操作技術評核',ids:['D01','D02','D03','D04']},
+    {label:'DOPS 操作技術評核',ids:['D01','D02']},
     {label:'核心課程-課後測驗',ids:['F-CT01','F-CT02','F-CT03']},
     {label:'實習課程總評值',ids:['F15']}
   ];
