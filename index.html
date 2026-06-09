@@ -2145,16 +2145,12 @@ const FORMS=[
   {id:'F01A',num:'柒(上)',name:'核心課程內容自我學前評值表',sub:'訓練前技能評核',roles:'student'},
   {id:'F01B',num:'柒(下)',name:'核心課程內容自我學後評值表',sub:'訓練後技能評核',roles:'both'},
   {id:'F02',num:'捌',name:'臨床表現自我學後評值表',sub:'學後臨床表現評估',roles:'both'},
-  {id:'F04M',num:'壹拾(內)',name:'床邊教學訓練記錄表（內科）',sub:'床邊教學紀錄',roles:'both'},
-  {id:'F04S',num:'壹拾(外)',name:'床邊教學訓練記錄表（外科）',sub:'床邊教學紀錄',roles:'both'},
-  {id:'F06M',num:'壹拾貳(內)',name:'病例導向評估表 CbD（內科）',sub:'Case-Based Discussion',roles:'both'},
-  {id:'F06S',num:'壹拾貳(外)',name:'病例導向評估表 CbD（外科）',sub:'Case-Based Discussion',roles:'both'},
-  {id:'F07M',num:'壹拾參(內)',name:'360 度評估表（內科）',sub:'多面向評核',roles:'both'},
-  {id:'F07S',num:'壹拾參(外)',name:'360 度評估表（外科）',sub:'多面向評核',roles:'both'},
+  {id:'F04M',num:'壹拾',name:'床邊教學訓練記錄表',sub:'床邊教學紀錄',roles:'both'},
+  {id:'F06M',num:'壹拾貳',name:'病例導向評估表 CbD',sub:'Case-Based Discussion',roles:'both'},
+  {id:'F07M',num:'壹拾參',name:'360 度評估表',sub:'多面向評核',roles:'both'},
   {id:'F08',num:'壹拾肆',name:'全人照護紀錄表',sub:'NICU/PICU 全人會議',roles:'both'},
   {id:'F09',num:'壹拾伍',name:'跨領域團隊合作照護訓練紀錄表',sub:'跨團隊晨間會議',roles:'both'},
-  {id:'F10A',num:'壹拾陸(一)',name:'輔導記錄表(1)',sub:'實習總指導教師',roles:'both'},
-  {id:'F10B',num:'壹拾陸(二)',name:'輔導記錄表(2)',sub:'實習總指導教師',roles:'both'},
+  {id:'F10A',num:'壹拾陸',name:'輔導記錄表',sub:'實習總指導教師',roles:'both'},
   {id:'F11',num:'壹拾柒',name:'個人化學習計畫 ILPs',sub:'學習目標計畫',roles:'both'},
   {id:'F12',num:'壹拾捌',name:'學習心得與建議紀錄表',sub:'實習心得',roles:'both'},
   {id:'F13',num:'貳拾',name:'書面個案報告評分表',sub:'書面報告 100分',roles:'both'},
@@ -3590,7 +3586,7 @@ function renderSidebar(){
     const groups=[
       {label:'學習風格自我評估',ids:['F16']},
       {label:'筆試評估',ids:['F-PRE','F-POST']},
-      {label:'學習評估表單',ids:['F11','F01A','F01B','F02','F04M','F04S','F06M','F06S','F07M','F07S','F08','F09','F10A','F10B','F12']},
+      {label:'學習評估表單',ids:['F11','F01A','F01B','F02','F04M','F06M','F07M','F08','F09','F10A','F12']},
       {label:'個案報告評分',ids:['F13','F14']},
       {label:'DOPS 操作技術評核',ids:['D01','D05','D02']},
       {label:'核心課程-課後測驗',ids:['F-CT01','F-CT02','F-CT03']},
@@ -3619,7 +3615,7 @@ function renderSidebar(){
   const groups=[
     {label:'學習風格自我評估',ids:['F16']},
     {label:'筆試評估',ids:['F-PRE','F-POST']},
-    {label:'學習評估表單',ids:['F11','F01A','F01B','F02','F04M','F04S','F06M','F06S','F07M','F07S','F08','F09','F10A','F10B','F12']},
+    {label:'學習評估表單',ids:['F11','F01A','F01B','F02','F04M','F06M','F07M','F08','F09','F10A','F12']},
     {label:'個案報告評分',ids:['F13','F14']},
     {label:'DOPS 操作技術評核',ids:['D01','D05','D02']},
     {label:'核心課程-課後測驗',ids:['F-CT01','F-CT02','F-CT03']},
@@ -3756,7 +3752,7 @@ function selectStudent(sid){
   const groups=[
     {label:'學習風格自我評估',ids:['F16']},
     {label:'筆試評估',ids:['F-PRE','F-POST']},
-    {label:'學習評估表單',ids:['F11','F01A','F01B','F02','F04M','F04S','F06M','F06S','F07M','F07S','F08','F09','F10A','F10B','F12']},
+    {label:'學習評估表單',ids:['F11','F01A','F01B','F02','F04M','F06M','F07M','F08','F09','F10A','F12']},
     {label:'個案報告評分',ids:['F13','F14']},
     {label:'DOPS 操作技術評核',ids:['D01','D05','D02']},
     {label:'核心課程-課後測驗',ids:['F-CT01','F-CT02','F-CT03']},
@@ -4109,7 +4105,7 @@ function renderFormList(){
   const groups=[
     {label:'學習風格自我評估',count:'1份',ids:['F16']},
     {label:'筆試評估',count:'2份',ids:['F-PRE','F-POST']},
-    {label:'學習評估表單',count:'14份',ids:['F11','F01A','F01B','F02','F04M','F04S','F06M','F06S','F07M','F07S','F08','F09','F10A','F10B','F12']},
+    {label:'學習評估表單',count:'10份',ids:['F11','F01A','F01B','F02','F04M','F06M','F07M','F08','F09','F10A','F12']},
     {label:'個案報告評分',count:'2份',ids:['F13','F14']},
     {label:'DOPS 操作技術評核',count:'3份',ids:['D01','D05','D02']},
     {label:'核心課程-課後測驗',count:'3份',ids:['F-CT01','F-CT02','F-CT03']},
@@ -4406,7 +4402,7 @@ async function openForm(id){
   //   老師視角: F01A、F-PRE、F-POST、F-CT01~12、F16、E01~E03 隱藏
   //            (這些表單老師沒有需要填寫的欄位,或使用者明確指定不需要)
   var __role=APP.currentRole||'';
-  var __hideForStudent=['F04M','F04S','F08','F09'];
+  var __hideForStudent=['F04M','F08','F09'];
   var __hideForTeacher=['F01A','F-PRE','F-POST','F16',
     'F-CT01','F-CT02','F-CT03'];
   var __hideProgress=false;
@@ -7073,7 +7069,7 @@ function buildPDFContent(id,f,d,val,row,section,studentName,studentSchool,chk){
     }
 
     // ── 頁首標題 ──
-    html+='<div style="text-align:center;font-weight:700;font-size:12pt;margin-bottom:8px;">實習學生—床邊教學訓練記錄表（'+(isMedF?'內科':'外科')+'）</div>';
+    html+='<div style="text-align:center;font-weight:700;font-size:12pt;margin-bottom:8px;">實習學生—床邊教學訓練記錄表</div>';
 
     // ── 學生資料 ──
     html+='<div class="section-head">學生資料</div>';
@@ -7149,7 +7145,7 @@ function buildPDFContent(id,f,d,val,row,section,studentName,studentSchool,chk){
     // ── 三、呼吸治療評估 ──
     html+='<div class="section-head">三、呼吸治療評估</div>';
     var ventArr=[];try{ventArr=JSON.parse(d['vent_type']||'[]');}catch(e){}
-    var allVent=['PB840','Servo','Hamilton-G5','Drager','NKV-550'];
+    var allVent=['AVEA','Servo','Newport e360','Drager','Bubble CPAP'];
     html+='<table><tr><td colspan="2" style="border:1px solid #DDD;padding:5px 8px;"><b>呼吸器機型：</b>';
     allVent.forEach(function(vt){
       var checked=ventArr.indexOf(vt)>=0;
@@ -9557,8 +9553,8 @@ function buildFormBody(f,d,canT,formKey,canS){
   formKey=formKey||f.id;
   if(canS===undefined) canS=true;
   const builders={
-    F01A:buildF01A,F01B:buildF01B,F02:buildF02,F04M:buildF04Bedside,F04S:buildF04Bedside,
-    F06M:buildF06M,F06S:buildF06S,F07M:buildF07M,F07S:buildF07S,F08:buildF08,F09:buildF09,F10A:buildF10,F10B:buildF10,
+    F01A:buildF01A,F01B:buildF01B,F02:buildF02,F04M:buildF04Bedside,
+    F06M:buildF06M,F07M:buildF07M,F08:buildF08,F09:buildF09,F10A:buildF10,
     F11:buildF11,F12:buildF12,F13:buildF13,F14:buildF14,
     D01:buildDOPS,D05:buildDOPS,D02:buildDOPS,
     F15:buildF15,
@@ -10004,7 +10000,7 @@ function buildF04Bedside(f,d,canT,fkey,canS){
   indHtml+='<div style="display:inline-flex;align-items:center;gap:4px;margin-top:4px;"><span style="font-size:11px;">Others<span style="color:var(--ink3);">（其他）</span>：</span><input type="text" value="'+(d['rt_ind_others']||'')+'" data-fid="'+fid+'" data-key="rt_ind_others" onchange="'+othersOC+'" style="width:120px;padding:3px 6px;border:1px solid var(--border);border-radius:4px;font-size:11px;"></div>';
 
   // 呼吸器機型（複選）
-  var ventTypes=['PB840','Servo','Hamilton-G5','Drager','NKV-550'];
+  var ventTypes=['AVEA','Servo','Newport e360','Drager','Bubble CPAP'];
   var savedVent=[];
   try{savedVent=JSON.parse(d['vent_type']||'[]');}catch(e){}
   var ventHtml='';
@@ -10024,7 +10020,7 @@ function buildF04Bedside(f,d,canT,fkey,canS){
   var isMedical=f.id==='F04M';
   let h='<div class="card" style="border-top:4px solid var(--blue);">';
   h+='<div class="card-body" style="padding:12px 16px;">';
-  h+='<div style="font-size:11px;font-weight:700;color:var(--ink3);letter-spacing:1px;text-align:center;">實習學生—床邊教學訓練記錄表（'+(isMedical?'內科':'外科')+'）</div>';
+  h+='<div style="font-size:11px;font-weight:700;color:var(--ink3);letter-spacing:1px;text-align:center;">實習學生—床邊教學訓練記錄表</div>';
   h+='</div></div>';
 
   // 基本資料（學生）
@@ -15181,7 +15177,7 @@ function renderStatusSection(filterStatus){
   const groups=[
     {label:'學習風格自我評估',ids:['F16']},
     {label:'筆試評估',ids:['F-PRE','F-POST']},
-    {label:'學習評估表單',ids:['F11','F01A','F01B','F02','F04M','F04S','F06M','F06S','F07M','F07S','F08','F09','F10A','F10B','F12']},
+    {label:'學習評估表單',ids:['F11','F01A','F01B','F02','F04M','F06M','F07M','F08','F09','F10A','F12']},
     {label:'個案報告評分',ids:['F13','F14']},
     {label:'DOPS 操作技術評核',ids:['D01','D05','D02']},
     {label:'核心課程-課後測驗',ids:['F-CT01','F-CT02','F-CT03']},
