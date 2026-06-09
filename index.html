@@ -2159,8 +2159,9 @@ const FORMS=[
   {id:'F12',num:'壹拾捌',name:'學習心得與建議紀錄表',sub:'實習心得',roles:'both'},
   {id:'F13',num:'貳拾',name:'書面個案報告評分表',sub:'書面報告 100分',roles:'both'},
   {id:'F14',num:'貳拾壹',name:'個案報告 PPT 評分表',sub:'口頭報告評分',roles:'both'},
-  {id:'D01',num:'貳拾貳(1)',name:'DOPS：小兒非侵襲性呼吸器(NIV)',sub:'Bubble CPAP／Trilogy／Astral',roles:'both'},
-  {id:'D02',num:'貳拾貳(2)',name:'DOPS：呼吸器技術操作(Neonatal)',sub:'Drager／Servo 系列',roles:'both'},
+  {id:'D01',num:'貳拾貳(1)',name:'DOPS-NIV(Bubble CPAP)',sub:'小兒非侵襲性呼吸器',roles:'both'},
+  {id:'D05',num:'貳拾貳(2)',name:'DOPS-NIV(BiPAP)',sub:'小兒非侵襲性呼吸器',roles:'both'},
+  {id:'D02',num:'貳拾貳(3)',name:'DOPS：呼吸器技術操作(Neonatal)',sub:'Drager／Servo 系列',roles:'both'},
   {id:'F15',num:'貳拾伍',name:'實習課程評值表',sub:'學習態度+技能+溝通',roles:'both'},
   {id:'F16',num:'貳拾陸',name:'Learning-Style 評估表',sub:'學習風格自我評估',roles:'student'},
   {id:'F-PRE',num:'筆試(前)',name:'前測',sub:'每題4分．25題．60分及格',roles:'student'},
@@ -3229,6 +3230,9 @@ const REQUIRED_STUDENT_FIELDS = {
   D01: ['s_name','school','s_date','intern_cat','complexity']
     .concat(Array.from({length:17},function(_,i){return 'D01_i'+(i+1);}))
     .concat(['score_grade','result','s_feeling','t_fb','s_sign','s_sign_date','t_sign','t_sign_date']),
+  D05: ['s_name','school','s_date','intern_cat','complexity']
+    .concat(Array.from({length:17},function(_,i){return 'D05_i'+(i+1);}))
+    .concat(['score_grade','result','s_feeling','t_fb','s_sign','s_sign_date','t_sign','t_sign_date']),
   D02: ['s_name','school','s_date','intern_cat','complexity']
     .concat(Array.from({length:20},function(_,i){return 'D02_i'+(i+1);}))
     .concat(['score_grade','result','s_feeling','t_fb','s_sign','s_sign_date','t_sign','t_sign_date']),
@@ -3319,7 +3323,7 @@ const TEACHER_PREFIX_FIELDS = [
   // EPA 臨床情境(老師勾選):e01_sc、e02_sc、e03_sc(也含 _others、_check)
   'e01_sc','e02_sc','e03_sc',
   // DOPS 評核項目:D01_i1 ~ D04_i34
-  'D01_i','D02_i','D03_i','D04_i',
+  'D01_i','D05_i','D02_i','D03_i','D04_i',
 ];
 
 /* 判斷某 data-key 是否為「老師欄位」(老師可自由編輯,不跳警示) */
@@ -3588,7 +3592,7 @@ function renderSidebar(){
       {label:'筆試評估',ids:['F-PRE','F-POST']},
       {label:'學習評估表單',ids:['F11','F01A','F01B','F02','F04M','F04S','F06M','F06S','F07M','F07S','F08','F09','F10A','F10B','F12']},
       {label:'個案報告評分',ids:['F13','F14']},
-      {label:'DOPS 操作技術評核',ids:['D01','D02']},
+      {label:'DOPS 操作技術評核',ids:['D01','D05','D02']},
       {label:'核心課程-課後測驗',ids:['F-CT01','F-CT02','F-CT03']},
       {label:'實習課程總評值',ids:['F15']},
     ];
@@ -3617,7 +3621,7 @@ function renderSidebar(){
     {label:'筆試評估',ids:['F-PRE','F-POST']},
     {label:'學習評估表單',ids:['F11','F01A','F01B','F02','F04M','F04S','F06M','F06S','F07M','F07S','F08','F09','F10A','F10B','F12']},
     {label:'個案報告評分',ids:['F13','F14']},
-    {label:'DOPS 操作技術評核',ids:['D01','D02']},
+    {label:'DOPS 操作技術評核',ids:['D01','D05','D02']},
     {label:'核心課程-課後測驗',ids:['F-CT01','F-CT02','F-CT03']},
     {label:'實習課程總評值',ids:['F15']},
   ];
@@ -3754,7 +3758,7 @@ function selectStudent(sid){
     {label:'筆試評估',ids:['F-PRE','F-POST']},
     {label:'學習評估表單',ids:['F11','F01A','F01B','F02','F04M','F04S','F06M','F06S','F07M','F07S','F08','F09','F10A','F10B','F12']},
     {label:'個案報告評分',ids:['F13','F14']},
-    {label:'DOPS 操作技術評核',ids:['D01','D02']},
+    {label:'DOPS 操作技術評核',ids:['D01','D05','D02']},
     {label:'核心課程-課後測驗',ids:['F-CT01','F-CT02','F-CT03']},
     {label:'實習課程總評值',ids:['F15']},
   ];
@@ -4107,7 +4111,7 @@ function renderFormList(){
     {label:'筆試評估',count:'2份',ids:['F-PRE','F-POST']},
     {label:'學習評估表單',count:'14份',ids:['F11','F01A','F01B','F02','F04M','F04S','F06M','F06S','F07M','F07S','F08','F09','F10A','F10B','F12']},
     {label:'個案報告評分',count:'2份',ids:['F13','F14']},
-    {label:'DOPS 操作技術評核',count:'2份',ids:['D01','D02']},
+    {label:'DOPS 操作技術評核',count:'3份',ids:['D01','D05','D02']},
     {label:'核心課程-課後測驗',count:'3份',ids:['F-CT01','F-CT02','F-CT03']},
     {label:'實習課程總評值',count:'1份',ids:['F15']},
   ];
@@ -4789,6 +4793,7 @@ var TEACHER_PROGRESS_OVERRIDE = {
          't_note','t_sign','t_sign_date'],
   // D01 DOPS:小兒非侵襲性呼吸器(NIV) — 老師端 (17 評分 + 5)
   D01: ['D01_i1','D01_i2','D01_i3','D01_i4','D01_i5','D01_i6','D01_i7','D01_i8','D01_i9','D01_i10','D01_i11','D01_i12','D01_i13','D01_i14','D01_i15','D01_i16','D01_i17','score_grade','result','t_fb','t_sign','t_sign_date'],
+  D05: ['D05_i1','D05_i2','D05_i3','D05_i4','D05_i5','D05_i6','D05_i7','D05_i8','D05_i9','D05_i10','D05_i11','D05_i12','D05_i13','D05_i14','D05_i15','D05_i16','D05_i17','score_grade','result','t_fb','t_sign','t_sign_date'],
   // D02 DOPS:呼吸器技術操作(Neonatal) — 老師端 (20 評分 + 5)
   D02: ['D02_i1','D02_i2','D02_i3','D02_i4','D02_i5','D02_i6','D02_i7','D02_i8','D02_i9','D02_i10','D02_i11','D02_i12','D02_i13','D02_i14','D02_i15','D02_i16','D02_i17','D02_i18','D02_i19','D02_i20','score_grade','result','t_fb','t_sign','t_sign_date'],
 };
@@ -9553,7 +9558,7 @@ function buildFormBody(f,d,canT,formKey,canS){
     F01A:buildF01A,F01B:buildF01B,F02:buildF02,F04M:buildF04Bedside,F04S:buildF04Bedside,
     F06M:buildF06M,F06S:buildF06S,F07M:buildF07M,F07S:buildF07S,F08:buildF08,F09:buildF09,F10A:buildF10,F10B:buildF10,
     F11:buildF11,F12:buildF12,F13:buildF13,F14:buildF14,
-    D01:buildDOPS,D02:buildDOPS,
+    D01:buildDOPS,D05:buildDOPS,D02:buildDOPS,
     F15:buildF15,
     F16:buildF16,
     'F-PRE':buildExamPre,
@@ -10728,11 +10733,39 @@ function calcF14Score(fid){
 
 const DOPS_DATA={
   D01:{
-    topic:'小兒非侵襲性呼吸器(NIV)',
-    extra:'呼吸器機型：□Bubble CPAP　□Trilogy　□Astral',
+    topic:'小兒非侵襲性呼吸器(NIV) Bubble CPAP',
+    machineOpts:['Bubble CPAP','Trilogy','Astral'],
     groups:[
       {hd:'NIV使用前',items:[
-        {h:'呼吸器機型：□Bubble CPAP　□Trilogy　□Astral'},
+        '1. 確認醫囑',
+        '2. 確認病人(兩種方式)並解釋',
+        '3. 能說出使用NIV的目的',
+        '4. 能說出使用NIV的適應症、禁忌症、合併症',
+        '5. 非侵襲性呼吸器常見的種類',
+        '6. 技術執行前應洗手',
+        '7. 準備用物：\n聽診器、BiPAP或oxygen blender with flow meter、拋棄式管路、Nasal prong、Auto feeding、無菌蒸餾水、子母膠帶、棉線',
+        '8. 如何選擇nasal prong size或面罩',
+        '9. 正確操作組裝管路',
+        '10. 評估治療前生命徵象、呼吸音、呼吸型態、血液氣體分報告、血氧飽和度',
+      ]},
+      {hd:'NIV使用中',items:[
+        '11. 調整適當的PEEP值，觀察氣泡產生；\n或調整適當NIV設定',
+        '12. 評估：\n聽診呼吸音、病患呼吸型態是否和呼吸器同步、生命徵象、ABG',
+        '13. 正確紀錄',
+        '14. 監測：\n氣道壓力或管路埋入水瓶深度、漏氣、鼻中膈及鼻孔週為膚色發紅、壓瘡、管路扭曲或堵塞、積水',
+        '15. 能說出使用非侵襲呼吸器衰竭情形',
+      ]},
+      {hd:'NIV使用後',items:[
+        '16. 拋棄式管路，丟置感染性垃圾桶',
+        '17. 儀器面板及表面以漂白水布擦拭，Nasal prong以2顆漂白錠浸泡30分鐘，送EO消毒',
+      ]},
+    ]
+  },
+  D05:{
+    topic:'小兒非侵襲性呼吸器(NIV) BiPAP',
+    machineOpts:['Bubble CPAP','Trilogy','Astral'],
+    groups:[
+      {hd:'NIV使用前',items:[
         '1. 確認醫囑',
         '2. 確認病人(兩種方式)並解釋',
         '3. 能說出使用NIV的目的',
@@ -10796,7 +10829,16 @@ function buildDOPS(f,d,canT,fkey,canS){
   const fid=fkey||f.id;
   if(canS===undefined)canS=true;
   const data=DOPS_DATA[f.id];if(!data)return buildGeneric(f,d,canT);
-  let h=basicInfoCard(fid,d,'','評核日期',true);
+  var _mx='';
+  if(data.machineOpts&&data.machineOpts.length){
+    var _mh=data.machineOpts.map(function(m){
+      var _mc=(d['machine']===m)?'checked':'';
+      var _mo="APP.formData['"+fid+"']=APP.formData['"+fid+"']||{};APP.formData['"+fid+"']['machine']='"+m+"';saveDraftField('"+fid+"','machine','"+m+"')";
+      return '<label class="check-item"><input type="radio" name="'+fid+'_machine" data-fid="'+fid+'" data-key="machine" '+_mc+' onchange="'+_mo+'" style="accent-color:#0E9F8E;"> '+m+'</label>';
+    }).join('');
+    _mx='<div class="field"><label>呼吸器機型（此份評核所考機型）</label><div class="check-group">'+_mh+'</div></div>';
+  }
+  let h=basicInfoCard(fid,d,_mx,'評核日期',true);
   let itemIdx=0;
   data.groups.forEach(g=>{
     h+='<div class="card"><div class="card-head" style="background:linear-gradient(90deg,#EAF2FB,#F5F9FC);"><div class="card-head-title" style="color:#1A5276;">'+g.hd+'<span class="t-badge">老師評分 1-9 / NA</span></div></div><div class="card-body" style="overflow-x:auto;">';
@@ -15128,7 +15170,7 @@ function renderStatusSection(filterStatus){
     {label:'筆試評估',ids:['F-PRE','F-POST']},
     {label:'學習評估表單',ids:['F11','F01A','F01B','F02','F04M','F04S','F06M','F06S','F07M','F07S','F08','F09','F10A','F10B','F12']},
     {label:'個案報告評分',ids:['F13','F14']},
-    {label:'DOPS 操作技術評核',ids:['D01','D02']},
+    {label:'DOPS 操作技術評核',ids:['D01','D05','D02']},
     {label:'核心課程-課後測驗',ids:['F-CT01','F-CT02','F-CT03']},
     {label:'實習課程總評值',ids:['F15']}
   ];
