@@ -595,9 +595,9 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 .dops-tbl td:last-child{border-right:none;}
 .dops-tbl tr:last-child td{border-bottom:none;}
 .dops-tbl .item-cell{font-size:11px;color:#B45309;background:linear-gradient(90deg,#FFFBEB 0%,#FEF3C7 100%);padding:6px 10px;font-weight:500;}
-.d-btn{width:26px;height:26px;border-radius:6px;border:1.5px solid #FCD34D;background:#FEF3C7;font-size:12px;cursor:pointer;color:#B45309;transition:all .15s;font-weight:600;}
-.d-btn:not(:disabled):hover{background:#D97706;color:#fff;border-color:#D97706;transform:translateY(-1px);}
-.d-btn.sel{background:#D97706;color:#fff;border-color:#B45309;font-weight:700;box-shadow:0 2px 4px rgba(180,83,9,.3);}
+.d-btn{width:28px;height:28px;border-radius:6px;border:2px solid #E0A93C;background:#FFFBF0;font-size:12px;cursor:pointer;color:#B45309;transition:all .15s;font-weight:600;}
+.d-btn:not(:disabled):hover{background:#FBE3B8;color:#7C3A06;border-color:#D97706;transform:translateY(-1px);}
+.d-btn.sel{background:#D97706;color:#fff;border-color:#B45309;font-weight:800;box-shadow:0 2px 5px rgba(180,83,9,.4);}
 .d-btn:disabled{cursor:not-allowed;opacity:.4;}
 
 /* ─── EPA levels ─── */
@@ -10877,7 +10877,7 @@ function buildDOPS(f,d,canT,fkey,canS){
       [1,2,3,4,5,6,7,8,9,'NA'].forEach(function(v){
         var sel=(d[key]==v||d[key]===String(v))?'sel':'';
         var dis=!canT?'disabled':'';
-        var dot=(d[key]==v||d[key]===String(v))?'●':'';
+        var dot=String(v);
         // 用單引號包裹數值，避免 JSON.stringify 對 'NA' 產生雙引號與外層 onclick 雙引號衝突
         var vArg=(typeof v==='number')?String(v):"'"+v+"'";
         var oc="setDOPS('"+f.id+"','"+key+"',"+vArg+",this)";
