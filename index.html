@@ -3165,11 +3165,11 @@ function showAutoSaveIndicator(state, countdownSec){
 /* 各表單學生必填欄位定義 */
 const REQUIRED_STUDENT_FIELDS = {
   // F01A 學前評值（學生單填）
-  F01A: ['s_name','school','intern_cat','s_date','s_sign','s_sign_date'].concat(Array.from({length:28},function(_,i){return 'f01_pre_'+i;})),
+  F01A: ['s_name','school','intern_cat','s_date','s_sign','s_sign_date'].concat(Array.from({length:30},function(_,i){return 'f01_pre_'+i;})),
   // F01B 學後評值（含 28 個學後自評 + 28 個指導者評核 + 雙方簽名）
   F01B: ['s_name','school','intern_cat','s_date','s_sign','s_sign_date','t_sign','t_sign_date']
-    .concat(Array.from({length:28},function(_,i){return 'f01_post_'+i;}))
-    .concat(Array.from({length:28},function(_,i){return 'f01_p1_'+i;})),
+    .concat(Array.from({length:30},function(_,i){return 'f01_post_'+i;}))
+    .concat(Array.from({length:30},function(_,i){return 'f01_p1_'+i;})),
   // F02 臨床表現
   F02: ['s_name','school','intern_cat','s_date','s_comment','t_fb','s_sign','s_sign_date','t_sign','t_sign_date'].concat(Array.from({length:14},function(_,i){return 'f02_'+i;})),
   // F04 床邊教學
@@ -3308,7 +3308,7 @@ const TEACHER_EXACT_FIELDS = new Set([
 // 老師欄位:以這些前綴開頭的 key 都是老師欄位(用於各表單評分項目編號)
 // 例如 f01_p1_0、f01_p1_27、f06_0、f15_att_0 等
 const TEACHER_PREFIX_FIELDS = [
-  // F01B 指導者評核(28 項):f01_p1_0 ~ f01_p1_27
+  // F01B 指導者評核(30 項):f01_p1_0 ~ f01_p1_29
   'f01_p1_',
   // ★ f02_ 已移除:f02_0 ~ f02_9 是學生自評,不是老師欄位
   // F06 CbD 評估項目:f06_0 ~ f06_6
@@ -9722,7 +9722,7 @@ function basicInfoCard(fid,d,extraFields,dateLabel,singleDate){
 function buildF01A(f,d,canT,fkey,canS){
   if(canS===undefined)canS=true;
   const fid=fkey||f.id;
-  const skills=['洗手技術','無菌操作','設備清潔、消毒','認識病歷','認識醫囑(含RT order)','認識及書寫RT紀錄','認識病患生命徵候及血液動力學監測系統','動脈血液氣體分析判讀','身體檢查與評估、呼吸音聽診','認識中央送氣(central piping)系統','認識不同的人工氣道','抽痰(Open、In-line)','氣切照護(tracheostomy care)','拔管技術(Extubation technique)','氣囊壓力維持(MLT、MOV方法)','咽喉呼吸道置入(Pharyngeal airway insertion)','認識並操作氧氣治療','認識並操作噴霧藥物治療(非呼吸器)','認識並操作噴霧藥物治療(呼吸器)','認識並操作呼吸器病患溼氣藥物治療','認識並操作非侵入性機械通氣治療','NPB-840呼吸器','Servo系列呼吸器','Hamilton-G5呼吸器','NKV-550呼吸器','Drager系列呼吸器','操作呼吸脫離指標','全人照護參與'];
+  const skills=['洗手技術','無菌操作','設備清潔、消毒','認識病歷','認識醫囑(含RT order)','認識及書寫RT紀錄','認識病患生命徵候及血液動力學監測系統(如:BP、HR、SpO2、EtO2、RR)','動脈血液氣體分析判讀','身體檢查與評估、呼吸音聽診','認識中央送氣(central piping)系統','認識不同的人工氣道','人工氣道照護－抽痰(Open、In-line)','人工氣道照護－氣切照護(tracheostomy care)','人工氣道照護－拔管技術(Extubation technique)','人工氣道照護－氣囊壓力維持(MLT、MOV)','人工氣道照護－咽喉呼吸道置入(Pharyngeal airway insertion)','認識並操作氧氣治療','認識並操作噴霧藥物治療(非呼吸器)','認識並操作呼吸器病人噴霧藥物治療','認識並操作噴霧藥物治療(非呼吸器)','認識並操作呼吸器病患溼氣藥物治療','非侵入性機械通氣治療－BiPAP(Flexo、Trilogy)','非侵入性機械通氣治療－Bubble CPAP','侵入性機械通氣治療－Servo I/U/N呼吸器','侵入性機械通氣治療－Drager系列(V系列與VN系列)','侵入性機械通氣治療－AVEA','侵入性機械通氣治療－e360','操作呼吸脫離指標','主治醫師巡視病房','跨團隊會議參與(如:團隊查房、晨會等)'];
 
   function mkBtn(key2,v,isTeacher){
     var cur=d[key2]||'';
@@ -9769,7 +9769,7 @@ function buildF01A(f,d,canT,fkey,canS){
 function buildF01B(f,d,canT,fkey,canS){
   if(canS===undefined)canS=true;
   const fid=fkey||f.id;
-  const skills=['洗手技術','無菌操作','設備清潔、消毒','認識病歷','認識醫囑(含RT order)','認識及書寫RT紀錄','認識病患生命徵候及血液動力學監測系統','動脈血液氣體分析判讀','身體檢查與評估、呼吸音聽診','認識中央送氣(central piping)系統','認識不同的人工氣道','抽痰(Open、In-line)','氣切照護(tracheostomy care)','拔管技術(Extubation technique)','氣囊壓力維持(MLT、MOV方法)','咽喉呼吸道置入(Pharyngeal airway insertion)','認識並操作氧氣治療','認識並操作噴霧藥物治療(非呼吸器)','認識並操作噴霧藥物治療(呼吸器)','認識並操作呼吸器病患溼氣藥物治療','認識並操作非侵入性機械通氣治療','NPB-840呼吸器','Servo系列呼吸器','Hamilton-G5呼吸器','NKV-550呼吸器','Drager系列呼吸器','操作呼吸脫離指標','全人照護參與'];
+  const skills=['洗手技術','無菌操作','設備清潔、消毒','認識病歷','認識醫囑(含RT order)','認識及書寫RT紀錄','認識病患生命徵候及血液動力學監測系統(如:BP、HR、SpO2、EtO2、RR)','動脈血液氣體分析判讀','身體檢查與評估、呼吸音聽診','認識中央送氣(central piping)系統','認識不同的人工氣道','人工氣道照護－抽痰(Open、In-line)','人工氣道照護－氣切照護(tracheostomy care)','人工氣道照護－拔管技術(Extubation technique)','人工氣道照護－氣囊壓力維持(MLT、MOV)','人工氣道照護－咽喉呼吸道置入(Pharyngeal airway insertion)','認識並操作氧氣治療','認識並操作噴霧藥物治療(非呼吸器)','認識並操作呼吸器病人噴霧藥物治療','認識並操作噴霧藥物治療(非呼吸器)','認識並操作呼吸器病患溼氣藥物治療','非侵入性機械通氣治療－BiPAP(Flexo、Trilogy)','非侵入性機械通氣治療－Bubble CPAP','侵入性機械通氣治療－Servo I/U/N呼吸器','侵入性機械通氣治療－Drager系列(V系列與VN系列)','侵入性機械通氣治療－AVEA','侵入性機械通氣治療－e360','操作呼吸脫離指標','主治醫師巡視病房','跨團隊會議參與(如:團隊查房、晨會等)'];
 
   function mkBtn(key2,v,isTeacher){
     var cur=d[key2]||'';
