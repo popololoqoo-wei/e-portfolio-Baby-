@@ -588,16 +588,16 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 .r-btn:not(:disabled){cursor:pointer;}
 
 /* ─── DOPS TABLE ─── */
-.dops-tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:11px;border:1px solid #0B7D70;border-radius:var(--r);overflow:hidden;}
-.dops-tbl th{background:linear-gradient(180deg,#0E9F8E 0%,#0B7D70 100%);color:#fff;border-right:1px solid #0B7D70;padding:7px 5px;text-align:center;font-size:10px;font-weight:600;letter-spacing:.2px;}
+.dops-tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:11px;border:1px solid #B45309;border-radius:var(--r);overflow:hidden;}
+.dops-tbl th{background:linear-gradient(180deg,#D97706 0%,#B45309 100%);color:#fff;border-right:1px solid #B45309;padding:7px 5px;text-align:center;font-size:10px;font-weight:600;letter-spacing:.2px;}
 .dops-tbl th:last-child{border-right:none;}
 .dops-tbl td{padding:6px 5px;border-right:1px solid var(--border2);border-bottom:1px solid var(--border2);vertical-align:middle;background:#fff;}
 .dops-tbl td:last-child{border-right:none;}
 .dops-tbl tr:last-child td{border-bottom:none;}
-.dops-tbl .item-cell{font-size:11px;color:var(--primary2);background:linear-gradient(90deg,#EAF8F5 0%,#D5F3EE 100%);padding:6px 10px;font-weight:500;}
-.d-btn{width:26px;height:26px;border-radius:6px;border:1.5px solid var(--blue-line);background:var(--blue-soft);font-size:12px;cursor:pointer;color:var(--primary2);transition:all .15s;font-weight:600;}
-.d-btn:not(:disabled):hover{background:var(--primary);color:#fff;border-color:var(--primary);transform:translateY(-1px);}
-.d-btn.sel{background:var(--primary);color:#fff;border-color:var(--primary2);font-weight:700;box-shadow:0 2px 4px rgba(37,99,235,.3);}
+.dops-tbl .item-cell{font-size:11px;color:#B45309;background:linear-gradient(90deg,#FFFBEB 0%,#FEF3C7 100%);padding:6px 10px;font-weight:500;}
+.d-btn{width:26px;height:26px;border-radius:6px;border:1.5px solid #FCD34D;background:#FEF3C7;font-size:12px;cursor:pointer;color:#B45309;transition:all .15s;font-weight:600;}
+.d-btn:not(:disabled):hover{background:#D97706;color:#fff;border-color:#D97706;transform:translateY(-1px);}
+.d-btn.sel{background:#D97706;color:#fff;border-color:#B45309;font-weight:700;box-shadow:0 2px 4px rgba(180,83,9,.3);}
 .d-btn:disabled{cursor:not-allowed;opacity:.4;}
 
 /* ─── EPA levels ─── */
@@ -10840,8 +10840,8 @@ function buildDOPS(f,d,canT,fkey,canS){
   let h=basicInfoCard(fid,d,_mx,'評核日期',true);
   let itemIdx=0;
   data.groups.forEach(g=>{
-    h+='<div class="card"><div class="card-head" style="background:linear-gradient(90deg,#EAF2FB,#F5F9FC);"><div class="card-head-title" style="color:#1A5276;">'+g.hd+'<span class="t-badge">老師評分 1-9 / NA</span></div></div><div class="card-body" style="overflow-x:auto;">';
-    h+='<div style="background:#EEF2F8;border-radius:var(--r);padding:6px 10px;margin-bottom:6px;font-size:10px;color:var(--blue);">📊 <strong>1-3分=有待加強</strong>　<strong>4-6分=符合標準</strong>　<strong>7-9分=優良</strong></div>';
+    h+='<div class="card"><div class="card-head" style="background:linear-gradient(90deg,#FFFBEB,#FEF9F0);"><div class="card-head-title" style="color:#B45309;">'+g.hd+'<span class="t-badge">老師評分 1-9 / NA</span></div></div><div class="card-body" style="overflow-x:auto;">';
+    h+='<div style="background:#EEF2F8;border-radius:var(--r);padding:6px 10px;margin-bottom:6px;font-size:10px;color:#B45309;">📊 <strong>1-3分=有待加強</strong>　<strong>4-6分=符合標準</strong>　<strong>7-9分=優良</strong></div>';
     h+='<div style="background:#FFF3CD;border:1px solid #F0C040;border-radius:var(--r);padding:6px 10px;margin-bottom:8px;font-size:11px;font-weight:700;color:#8B6914;">⚠ 合格標準（任一項目不得低於）UGY：5分</div>';
     h+='<table class="dops-tbl"><thead><tr><th style="text-align:left;min-width:160px;">評核內容</th><th colspan="3" style="background:#C8D8F0;color:#1A3A5C;font-size:9px;">有待加強</th><th colspan="3" style="background:#D8ECD8;color:#2D5A27;font-size:9px;">符合標準</th><th colspan="3" style="background:#F0E8C8;color:#8B6914;font-size:9px;">優良</th><th style="background:#EEE;font-size:9px;">未評</th></tr><tr><th></th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>NA</th></tr></thead><tbody>';
     g.items.forEach(item=>{
