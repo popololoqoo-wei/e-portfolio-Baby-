@@ -129,7 +129,7 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 
 /* ─── MAIN APP ─── */
 #app-screen{min-height:100vh;}
-.topbar{background:#1E3A8A;color:#fff;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(15,23,42,.15);}
+.topbar{background:linear-gradient(100deg,#0B7D70,#0E9F8E);color:#fff;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(15,23,42,.15);}
 .topbar-left{display:flex;align-items:center;gap:12px;}
 .topbar-title{font-family:var(--ff-serif);font-size:15px;font-weight:600;letter-spacing:.3px;}
 .topbar-sub{font-size:11px;color:rgba(255,255,255,.7);margin-top:1px;}
@@ -403,8 +403,8 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
    這個色組是全站基準，所有「學生／老師」區塊都遵循，避免深淺不一。 */
 
 /* 學生卡片 */
-.card.s-card{background:#F0F7FF;border:2px solid #93C5FD;}
-.card.s-card .card-head{background:linear-gradient(135deg,#3B82F6 0%,#1D4ED8 100%);border-bottom:none;}
+.card.s-card{background:#EAF8F5;border:2px solid #A4E4DB;}
+.card.s-card .card-head{background:linear-gradient(135deg,#0E9F8E 0%,#0B7D70 100%);border-bottom:none;}
 .card.s-card .card-head-title{color:#fff;}
 
 /* 老師卡片（手動加 class） */
@@ -472,7 +472,7 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 .form-progress-label .fp-num{color:var(--primary2);font-weight:700;font-size:13px;}
 .form-progress-label .fp-pct{color:var(--ink3);font-size:11px;margin-left:6px;font-weight:500;}
 .form-progress-track{flex:1;height:8px;background:#EEF2F7;border-radius:999px;overflow:hidden;position:relative;}
-.form-progress-fill{height:100%;background:linear-gradient(90deg,#3B82F6 0%,#1E3A8A 100%);border-radius:999px;transition:width .3s ease;width:0%;}
+.form-progress-fill{height:100%;background:linear-gradient(90deg,#0E9F8E 0%,#0B7D70 100%);border-radius:999px;transition:width .3s ease;width:0%;}
 .form-progress.is-done .form-progress-fill{background:linear-gradient(90deg,#22C55E 0%,#059669 100%);}
 .form-progress.is-done .form-progress-label .fp-num{color:#059669;}
 @media(max-width:560px){
@@ -588,13 +588,13 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 .r-btn:not(:disabled){cursor:pointer;}
 
 /* ─── DOPS TABLE ─── */
-.dops-tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:11px;border:1px solid #1E40AF;border-radius:var(--r);overflow:hidden;}
-.dops-tbl th{background:linear-gradient(180deg,#2563EB 0%,#1E40AF 100%);color:#fff;border-right:1px solid #1E3A8A;padding:7px 5px;text-align:center;font-size:10px;font-weight:600;letter-spacing:.2px;}
+.dops-tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:11px;border:1px solid #0B7D70;border-radius:var(--r);overflow:hidden;}
+.dops-tbl th{background:linear-gradient(180deg,#0E9F8E 0%,#0B7D70 100%);color:#fff;border-right:1px solid #0B7D70;padding:7px 5px;text-align:center;font-size:10px;font-weight:600;letter-spacing:.2px;}
 .dops-tbl th:last-child{border-right:none;}
 .dops-tbl td{padding:6px 5px;border-right:1px solid var(--border2);border-bottom:1px solid var(--border2);vertical-align:middle;background:#fff;}
 .dops-tbl td:last-child{border-right:none;}
 .dops-tbl tr:last-child td{border-bottom:none;}
-.dops-tbl .item-cell{font-size:11px;color:var(--primary2);background:linear-gradient(90deg,#EFF6FF 0%,#DBEAFE 100%);padding:6px 10px;font-weight:500;}
+.dops-tbl .item-cell{font-size:11px;color:var(--primary2);background:linear-gradient(90deg,#EAF8F5 0%,#D5F3EE 100%);padding:6px 10px;font-weight:500;}
 .d-btn{width:26px;height:26px;border-radius:6px;border:1.5px solid var(--blue-line);background:var(--blue-soft);font-size:12px;cursor:pointer;color:var(--primary2);transition:all .15s;font-weight:600;}
 .d-btn:not(:disabled):hover{background:var(--primary);color:#fff;border-color:var(--primary);transform:translateY(-1px);}
 .d-btn.sel{background:var(--primary);color:#fff;border-color:var(--primary2);font-weight:700;box-shadow:0 2px 4px rgba(37,99,235,.3);}
@@ -5138,6 +5138,7 @@ function enableRadioToggleClear(){
         // ★ 標記為「已刪除」,避免下次從雲端拉回時復活
         if(typeof markFieldDeleted==='function') markFieldDeleted(targetKey, key);
         // 觸發自動儲存,讓「清除」也能同步到雲端
+        if(typeof updateFormProgress==='function'){try{updateFormProgress();}catch(e){}}
         if(typeof scheduleAutoSave === 'function') scheduleAutoSave(bareId);
         // ★ 若有對應的「即時重算」函式,清除後也要重算(F16 分數、360 度分數等)
         try{
@@ -9340,6 +9341,7 @@ function setRating(fid,key,val,role,btn){
     try{ toast('✓ 已清除此項評分'); }catch(e){}
   }
   // ★ 觸發自動儲存
+  if(typeof updateFormProgress==='function'){try{updateFormProgress();}catch(e){}}
   if(typeof scheduleAutoSave === 'function') scheduleAutoSave(bareId);
 }
 function rBtnTable(fid,key,v,role,disabled){
@@ -9641,6 +9643,7 @@ function saveDraftField(fid, key, val){
     localStorage.setItem('form_drafts', JSON.stringify(drafts));
   }catch(e){}
   // ★ 觸發自動儲存
+  if(typeof updateFormProgress==='function'){try{updateFormProgress();}catch(e){}}
   if(typeof scheduleAutoSave === 'function') scheduleAutoSave(bareId);
 }
 
@@ -10749,7 +10752,7 @@ const DOPS_DATA={
         '10. 評估治療前生命徵象、呼吸音、呼吸型態、血液氣體分報告、血氧飽和度',
       ]},
       {hd:'NIV使用中',items:[
-        '11. 調整適當的PEEP值，觀察氣泡產生；\n或調整適當NIV設定',
+        '11. 調整適當的PEEP值，觀察氣泡產生；或調整適當NIV設定',
         '12. 評估：\n聽診呼吸音、病患呼吸型態是否和呼吸器同步、生命徵象、ABG',
         '13. 正確紀錄',
         '14. 監測：\n氣道壓力或管路埋入水瓶深度、漏氣、鼻中膈及鼻孔週為膚色發紅、壓瘡、管路扭曲或堵塞、積水',
@@ -10778,7 +10781,7 @@ const DOPS_DATA={
         '10. 評估治療前生命徵象、呼吸音、呼吸型態、血液氣體分報告、血氧飽和度',
       ]},
       {hd:'NIV使用中',items:[
-        '11. 調整適當的PEEP值，觀察氣泡產生；\n或調整適當NIV設定',
+        '11. 調整適當的PEEP值，觀察氣泡產生；或調整適當NIV設定',
         '12. 評估：\n聽診呼吸音、病患呼吸型態是否和呼吸器同步、生命徵象、ABG',
         '13. 正確紀錄',
         '14. 監測：\n氣道壓力或管路埋入水瓶深度、漏氣、鼻中膈及鼻孔週為膚色發紅、壓瘡、管路扭曲或堵塞、積水',
@@ -10793,7 +10796,7 @@ const DOPS_DATA={
   D02:{
     topic:'呼吸器技術操作(Neonatal)',
     extra:'呼吸器機型：□Drager系列(VN/V)　□Servo系列(N/U)',
-    machineOpts:['Drager系列(VN/V)','Servo系列(N/U)'],
+    machineOpts:['Drager系列(VN/V)','Servo系列(N/U)','AVEA','Newport E360'],
     groups:[
       {hd:'呼吸器使用前',items:[
         '1. 確認醫囑與適應症',
@@ -10865,13 +10868,15 @@ function buildDOPS(f,d,canT,fkey,canS){
       var key=f.id+'_i'+(++itemIdx);
       // 一般 item：依編號層級縮排
       var lines = String(item).split('\n');
-      var renderedLines = lines.map(function(ln){
-        var lv = _calcLevel(ln);
-        var pad = lv * 18;
-        if(pad === 0) return ln;
-        return '<span style="display:inline-block;padding-left:'+pad+'px;">'+ln+'</span>';
-      });
-      var itemDisplay = renderedLines.join('<br>');
+      var _m0 = String(lines[0]).match(/^(\d+(?:\.\d+)*\.)\s*([\s\S]*)$/);
+      var itemDisplay;
+      if(_m0){
+        var _numTok=_m0[1];
+        var _body=[_m0[2]].concat(lines.slice(1)).join('<br>');
+        itemDisplay='<div style="display:flex;align-items:flex-start;gap:.35em;"><span style="flex:0 0 auto;white-space:nowrap;">'+_numTok+'</span><span style="flex:1 1 auto;min-width:0;">'+_body+'</span></div>';
+      } else {
+        itemDisplay=lines.join('<br>');
+      }
       h+='<tr><td class="item-cell">'+itemDisplay+'</td>';
       [1,2,3,4,5,6,7,8,9,'NA'].forEach(function(v){
         var sel=(d[key]==v||d[key]===String(v))?'sel':'';
@@ -10983,6 +10988,7 @@ function setDOPS(fid,key,val,btn){
     try{ toast('✓ 已清除此項評核'); }catch(e){}
   }
   // ★ 觸發自動儲存
+  if(typeof updateFormProgress==='function'){try{updateFormProgress();}catch(e){}}
   if(typeof scheduleAutoSave === 'function') scheduleAutoSave(bareId);
 }
 
@@ -11132,6 +11138,7 @@ function setEPA(fid,lv,fid2){
     try{ toast('✓ 已清除 EPA 評定等級'); }catch(e){}
   }
   // ★ 觸發自動儲存
+  if(typeof updateFormProgress==='function'){try{updateFormProgress();}catch(e){}}
   if(typeof scheduleAutoSave === 'function') scheduleAutoSave(bareId);
 }
 
@@ -12017,6 +12024,7 @@ function examPick(fid, qnum, opt){
     // ★ 標記為「已刪除」,避免下次從雲端拉回時復活
     if(typeof markFieldDeleted==='function') markFieldDeleted(fid, 'q'+qnum);
     var bareId = fid.indexOf('_')>=0 ? fid.split('_')[0] : fid;
+    if(typeof updateFormProgress==='function'){try{updateFormProgress();}catch(e){}}
     if(typeof scheduleAutoSave === 'function') scheduleAutoSave(bareId);
     toast('✓ 已清除第 '+qnum+' 題答案');
   } else {
@@ -12489,6 +12497,7 @@ function courseTestPick(fid, qnum, opt){
     if(typeof markFieldDeleted==='function') markFieldDeleted(fid, 'q'+qnum);
     // 觸發自動儲存
     var bareId = fid.indexOf('_')>=0 ? fid.split('_')[0] : fid;
+    if(typeof updateFormProgress==='function'){try{updateFormProgress();}catch(e){}}
     if(typeof scheduleAutoSave === 'function') scheduleAutoSave(bareId);
     toast('✓ 已清除第 '+qnum+' 題答案');
   } else {
