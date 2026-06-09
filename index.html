@@ -366,7 +366,7 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 .tag{font-size:10px;padding:3px 8px;border-radius:999px;font-weight:600;letter-spacing:.2px;}
 .tag-both{background:var(--green-soft);color:var(--green);border:1px solid var(--green-line);}
 .tag-student{background:var(--blue-soft);color:var(--blue);border:1px solid var(--blue-line);}
-.tag-teacher{background:var(--red-soft);color:var(--red);border:1px solid var(--red-line);}
+.tag-teacher{background:#FEF3C7;color:#B45309;border:1px solid #FCD34D;}
 .form-card-status{font-size:10px;color:var(--ink3);}
 
 /* ─── FORM DETAIL ─── */
@@ -408,24 +408,24 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 .card.s-card .card-head-title{color:#fff;}
 
 /* 老師卡片（手動加 class） */
-.card.t-card{background:#FFF5F5;border:2px solid #FCA5A5;}
-.card.t-card .card-head{background:linear-gradient(135deg,#DC2626 0%,#991B1B 100%);border-bottom:none;}
+.card.t-card{background:#FFFBEB;border:2px solid #FCD34D;}
+.card.t-card .card-head{background:linear-gradient(135deg,#D97706 0%,#B45309 100%);border-bottom:none;}
 .card.t-card .card-head-title{color:#fff;}
 
 /* 混合卡片（共同填寫） */
-.card.m-card{background:linear-gradient(180deg,#F0F7FF 0%,#FFF5F5 100%);}
-.card.m-card .card-head{background:linear-gradient(90deg,#DBEAFE 0%,#FEE2E2 100%);}
+.card.m-card{background:linear-gradient(180deg,#EAF8F5 0%,#FFFBEB 100%);}
+.card.m-card .card-head{background:linear-gradient(90deg,#D5F3EE 0%,#FEF3C7 100%);}
 .card.m-card .card-head-title{color:#1F2937;}
 
 /* ─── 自動套用「老師」配色：所有 card-head 內含 t-badge 的卡片，自動視為老師卡片 ───
    不論 build 函式是否手動加上 .t-card class，只要標題列寫了 <span class="t-badge">老師</span>
    就會自動上紅色配色。這樣未來新增的卡片不需特別處理。 */
 .card:not(.s-card):not(.m-card):has(.card-head .t-badge){
-  background:#FFF5F5;
-  border:2px solid #FCA5A5;
+  background:#FFFBEB;
+  border:2px solid #FCD34D;
 }
 .card:not(.s-card):not(.m-card):has(.card-head .t-badge) > .card-head{
-  background:linear-gradient(135deg,#DC2626 0%,#991B1B 100%);
+  background:linear-gradient(135deg,#D97706 0%,#B45309 100%);
   border-bottom:none;
 }
 .card:not(.s-card):not(.m-card):has(.card-head .t-badge) > .card-head .card-head-title{
@@ -440,10 +440,10 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 }
 
 /* 混合卡片內的學生／老師子區塊 */
-.s-block{background:#F0F7FF;border:1px solid #93C5FD;border-radius:var(--r);padding:12px 14px;margin:10px 0;}
-.s-block-title{font-size:12px;font-weight:700;color:#1E40AF;margin-bottom:8px;letter-spacing:.2px;}
-.t-block{background:#FFF5F5;border:1px solid #FCA5A5;border-radius:var(--r);padding:12px 14px;margin:10px 0;}
-.t-block-title{font-size:12px;font-weight:700;color:#991B1B;margin-bottom:8px;letter-spacing:.2px;}
+.s-block{background:var(--blue-soft);border:1px solid var(--blue-line);border-radius:var(--r);padding:12px 14px;margin:10px 0;}
+.s-block-title{font-size:12px;font-weight:700;color:#0B7D70;margin-bottom:8px;letter-spacing:.2px;}
+.t-block{background:#FFFBEB;border:1px solid #FCD34D;border-radius:var(--r);padding:12px 14px;margin:10px 0;}
+.t-block-title{font-size:12px;font-weight:700;color:#B45309;margin-bottom:8px;letter-spacing:.2px;}
 
 /* ─── FIELDS ─── */
 .field{margin-bottom:.95rem;}
@@ -454,7 +454,7 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(14,159,142,.14);}
 .field input:disabled,.field textarea:disabled,.field select:disabled{background:var(--bg-soft);color:var(--ink3);cursor:not-allowed;border-color:var(--border2);}
 .field textarea{resize:vertical;min-height:72px;line-height:1.6;}
-.t-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:999px;background:var(--red-soft);color:var(--red);border:1px solid var(--red-line);margin-left:6px;font-weight:600;letter-spacing:.2px;}
+.t-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:999px;background:#FEF3C7;color:#B45309;border:1px solid #FCD34D;margin-left:6px;font-weight:600;letter-spacing:.2px;}
 .s-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:999px;background:var(--blue-soft);color:var(--blue);border:1px solid var(--blue-line);margin-left:6px;font-weight:600;letter-spacing:.2px;}
 
 /* ─── 表單填寫進度條(置於 form-detail-header 下方) ─── */
@@ -685,7 +685,7 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 .history-time{color:var(--ink3);font-family:'SF Mono','Monaco','Cascadia Code',monospace;font-size:11px;}
 .history-who{padding:2px 9px;border-radius:999px;font-size:10px;font-weight:600;letter-spacing:.2px;}
 .hw-s{background:var(--blue-soft);color:var(--blue);border:1px solid var(--blue-line);}
-.hw-t{background:var(--red-soft);color:var(--red);border:1px solid var(--red-line);}
+.hw-t{background:#FEF3C7;color:#B45309;border:1px solid #FCD34D;}
 .hw-a{background:var(--gold-soft);color:var(--gold);border:1px solid #ECD08C;}
 
 /* ─── ADMIN PANEL ─── */
@@ -9210,7 +9210,7 @@ function refreshFormUI(formKey){
         var isTeacher = b.getAttribute('data-teacher')==='1';
         var v = b.getAttribute('data-rval');
         var isNA = v==='NA';
-        var selBg = isNA?'#7F8C8D':(isTeacher?'#C0392B':'#2471A3');
+        var selBg = isNA?'#7F8C8D':(isTeacher?'#B45309':'#0E9F8E');
         // 雲端有值且等於此按鈕的 rval 才選中;否則全部回到未選
         var shouldSel = (curVal!==undefined && curVal!==null && curVal!=='' && curVal===v);
         b.style.background = shouldSel?selBg:'#fff';
@@ -9419,7 +9419,7 @@ function f01Click(btn){
   }
 
   // 更新 inline style(F01A/F01B 按鈕用 inline style 不是 CSS class)
-  var selBg=isTeacher?'#C0392B':'#2471A3';
+  var selBg=isTeacher?'#B45309':'#0E9F8E';
   document.querySelectorAll('[data-rkey="'+key+'"]').forEach(function(b){
     // 清除時所有按鈕都回到未選樣式;否則只有對應 val 的按鈕變色
     var shouldSel = (!isToggleOff && b.getAttribute('data-rval')===val);
@@ -9728,7 +9728,7 @@ function buildF01A(f,d,canT,fkey,canS){
     var cur=d[key2]||'';
     var isSel=cur===v;
     var isNA=v==='NA';
-    var selBg=isNA?'#7F8C8D':(isTeacher?'#C0392B':'#2471A3');
+    var selBg=isNA?'#7F8C8D':(isTeacher?'#B45309':'#0E9F8E');
     var bg=isSel?selBg:'#fff';
     var col=isSel?'#fff':'#7A706A';
     var fw=isSel?'700':'400';
@@ -9775,7 +9775,7 @@ function buildF01B(f,d,canT,fkey,canS){
     var cur=d[key2]||'';
     var isSel=cur===v;
     var isNA=v==='NA';
-    var selBg=isNA?'#7F8C8D':(isTeacher?'#C0392B':'#2471A3');
+    var selBg=isNA?'#7F8C8D':(isTeacher?'#B45309':'#0E9F8E');
     var bg=isSel?selBg:'#fff';
     var col=isSel?'#fff':'#7A706A';
     var fw=isSel?'700':'400';
@@ -10415,7 +10415,7 @@ function buildF09(f,d,canT,fkey,canS){
   const profs=['西醫','牙醫','中醫','藥事','醫事放射','醫事檢驗','牙體技術','護理','營養','助產','聽力','語言','物理','職能','臨床心理','諮商心理','呼吸治療'];
   let h=basicInfoCard(fid,d,`<div class="field"><label>主診斷</label>${fi(f.id,'diagnosis','text',false)}</div>
     <div class="field"><label>參加職類</label><div class="check-group">${profs.map(v=>`<label class="check-item"><input type="checkbox" ${d['prof_'+v]?'checked':''} onchange="APP.formData['${fid}']=APP.formData['${fid}']||{};APP.formData['${fid}']['prof_${v}']=this.checked" style="accent-color:var(--gold);"> ${v}</label>`).join('')}</div></div>`);
-  h+=`<div class="card"><div class="card-head"><div class="card-head-title">團隊照護需求討論</div></div><div class="card-body">
+  h+=`<div class="card"><div class="card-head"><div class="card-head-title">團隊照護需求討論</div><span class="s-badge" style="background:rgba(255,255,255,.25);color:#fff;border-color:rgba(255,255,255,.4);">學生填寫</span></div><div class="card-body">
     <div class="field"><label>1. 身為呼吸治療師，我的專業可以提供這個病人：</label>${ta(f.id,'c1',3,false)}</div>
     <div class="field"><label>2. 我會請求＿師，協助我以下事項：</label>${ta(f.id,'c2',3,false)}</div>
     <div class="field"><label>3. 我可以幫助其他專業成員的部分是：</label>${ta(f.id,'c3',3,false)}</div>
@@ -10924,7 +10924,7 @@ function buildDOPS(f,d,canT,fkey,canS){
     var chk=(d['result']&&d['result']===v)?'checked':'';
     var dis=!canT?'disabled':'';
     var oc="APP.formData['"+fid+"']=APP.formData['"+fid+"']||{};APP.formData['"+fid+"']['result']='"+v+"';saveDraftField('"+fid+"','result','"+v+"')";
-    h+='<label class="check-item"><input type="radio" name="'+f.id+'_result" '+chk+' '+dis+' onchange="'+oc+'" style="accent-color:#DC2626;"> '+v+'</label>';
+    h+='<label class="check-item"><input type="radio" name="'+f.id+'_result" '+chk+' '+dis+' onchange="'+oc+'" style="accent-color:#D97706;"> '+v+'</label>';
   });
   h+='</div></div>';
   // 老師回饋
@@ -11238,6 +11238,7 @@ function buildF15(f,d,canT,fkey,canS){
     </div>
   </div>`;
   h+=`<div class="card"><div class="card-head"><div class="card-head-title">請假紀錄與回饋</div></div><div class="card-body">
+    <div class="s-block"><div class="s-block-title">📋 學生填寫</div>
     <div class="g3">
       <div class="field"><label>公假（天）</label>${fi(fid,'leave_pub','number',false)}</div>
       <div class="field"><label>病假（天）</label>${fi(fid,'leave_sick','number',false)}</div>
@@ -11245,6 +11246,7 @@ function buildF15(f,d,canT,fkey,canS){
     </div>
     <div class="g2"><div class="field"><label>遲到（次）</label>${fi(fid,'late_cnt','number',false)}</div></div>
     <div class="field"><label>學生自我評語和建議</label>${ta(fid,'s_comment',3,false)}</div>
+    </div>
 
     <!-- ═══ 個人反思區(學生主動書寫,不評分,只屬於學生自己的學習軌跡)═══ -->
     <div style="margin:18px 0 8px;padding:14px 16px;background:linear-gradient(135deg,#FEF3C7 0%,#FFFBEB 100%);border-left:4px solid #F59E0B;border-radius:6px;">
@@ -11278,11 +11280,13 @@ function buildF15(f,d,canT,fkey,canS){
     <!-- ═══ 個人反思區 結束 ═══ -->
 
     ${studentSignRow(fid,'s_sign')}
+    <div class="t-block"><div class="t-block-title">✏️ 老師回饋與簽名</div>
     <div class="field"><label>師生檢討與回饋<span class="t-badge">老師</span></label>${ta(fid,'t_fb',4,!canT)}</div>
     ${teacherSignRow(fid,'t_sign',canT,'實習總指導教師簽名')}
     <div class="g2">
       <div class="field"><label>實習計畫主持人簽名<span class="t-badge">老師</span></label>${makeDropdown(fid,'host_sign',['張維倫'].concat(getTeacherList().filter(function(n){return n!=='張維倫';})),!canT,'請選擇主持人',true)}</div>
       <div class="field"><label>計畫主持人簽名時間<span class="t-badge">老師</span></label><input type="date" value="${d['host_sign_date']||''}" ${!canT?'disabled':''} data-fid="${fid}" data-key="host_sign_date" data-teacher="1" onchange="APP.formData['${fid}']=APP.formData['${fid}']||{};APP.formData['${fid}']['host_sign_date']=this.value" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r);background:${!canT?'var(--cream)':'#fff'};color:var(--ink);font-size:13px;"></div>
+    </div>
     </div>
   </div></div>`;
 
@@ -12848,7 +12852,7 @@ function buildCourseTest(f, d, canT, fkey, canS){
 /* 後測 PIN 鎖屏 */
 function _buildExamPostPinGate(fid){
   return '<div class="card" style="border:2px solid #DC2626;">'+
-    '<div class="card-head" style="background:linear-gradient(135deg,#DC2626 0%,#991B1B 100%);"><div class="card-head-title" style="color:#fff;">🔒 筆試後測需 PIN 碼解鎖</div></div>'+
+    '<div class="card-head" style="background:linear-gradient(135deg,#D97706 0%,#B45309 100%);"><div class="card-head-title" style="color:#fff;">🔒 筆試後測需 PIN 碼解鎖</div></div>'+
     '<div class="card-body">'+
     '<div style="font-size:13px;color:#374151;line-height:1.7;margin-bottom:14px;">'+
     '此份「<b>筆試後測－小兒呼吸照護實習</b>」考卷需由監考老師輸入專用 PIN 碼解鎖後方可作答。<br>'+
@@ -13051,7 +13055,7 @@ function renderAdmin(){
 
     <!-- 筆試後測專用 PIN（與老師 PIN 獨立；同步至 GAS 伺服器） -->
     <div class="admin-card" style="border-color:#DC2626;">
-      <div class="admin-card-head" style="background:linear-gradient(135deg,#DC2626 0%,#991B1B 100%);">📝 筆試後測 PIN 碼設定（即時同步至伺服器）</div>
+      <div class="admin-card-head" style="background:linear-gradient(135deg,#D97706 0%,#B45309 100%);">📝 筆試後測 PIN 碼設定（即時同步至伺服器）</div>
       <div class="admin-card-body">
         <div style="font-size:12px;color:#7F1D1D;background:#FEF2F2;border:1px solid #FECACA;border-radius:6px;padding:10px 12px;margin-bottom:10px;line-height:1.7;">
           ⚠ 此 PIN 碼<b>專供「筆試後測－小兒呼吸照護實習」</b>表單作答前解鎖使用，與一般「老師 PIN」<b>完全獨立</b>。<br>
