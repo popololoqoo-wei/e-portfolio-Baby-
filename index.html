@@ -2159,8 +2159,8 @@ const FORMS=[
   {id:'F12',num:'壹拾捌',name:'學習心得與建議紀錄表',sub:'實習心得',roles:'both'},
   {id:'F13',num:'貳拾',name:'書面個案報告評分表',sub:'書面報告 100分',roles:'both'},
   {id:'F14',num:'貳拾壹',name:'個案報告 PPT 評分表',sub:'口頭報告評分',roles:'both'},
-  {id:'D01',num:'貳拾貳(1)',name:'DOPS：非侵襲性呼吸器(NIV)',sub:'Astral／Trilogy 操作',roles:'both'},
-  {id:'D02',num:'貳拾貳(2)',name:'DOPS：小兒呼吸器初步設定與操作',sub:'Servo 系列',roles:'both'},
+  {id:'D01',num:'貳拾貳(1)',name:'DOPS：小兒非侵襲性呼吸器(NIV)',sub:'Bubble CPAP／Trilogy／Astral',roles:'both'},
+  {id:'D02',num:'貳拾貳(2)',name:'DOPS：呼吸器技術操作(Neonatal)',sub:'Drager／Servo 系列',roles:'both'},
   {id:'F15',num:'貳拾伍',name:'實習課程評值表',sub:'學習態度+技能+溝通',roles:'both'},
   {id:'F16',num:'貳拾陸',name:'Learning-Style 評估表',sub:'學習風格自我評估',roles:'student'},
   {id:'F-PRE',num:'筆試(前)',name:'前測',sub:'每題4分．25題．60分及格',roles:'student'},
@@ -3225,12 +3225,12 @@ const REQUIRED_STUDENT_FIELDS = {
     'f14_sc_0','f14_sc_1','f14_sc_2','f14_sc_3','f14_sc_4','f14_sc_5',
     'f14_sc_6','f14_sc_7','f14_sc_8','f14_sc_9','f14_sc_10','f14_sc_11',
     's_fb','t_fb','s_sign','s_sign_date','t_sign','t_sign_date'],
-  // DOPS：每張的評核項目數量不同（D01 NIV=16、D02 Servo=18）
+  // DOPS：每張的評核項目數量不同（D01 NIV=17、D02 Neonatal=20）
   D01: ['s_name','school','s_date','intern_cat','complexity']
-    .concat(Array.from({length:16},function(_,i){return 'D01_i'+(i+1);}))
+    .concat(Array.from({length:17},function(_,i){return 'D01_i'+(i+1);}))
     .concat(['score_grade','result','s_feeling','t_fb','s_sign','s_sign_date','t_sign','t_sign_date']),
   D02: ['s_name','school','s_date','intern_cat','complexity']
-    .concat(Array.from({length:18},function(_,i){return 'D02_i'+(i+1);}))
+    .concat(Array.from({length:20},function(_,i){return 'D02_i'+(i+1);}))
     .concat(['score_grade','result','s_feeling','t_fb','s_sign','s_sign_date','t_sign','t_sign_date']),
   // F15 實習課程評值
   F15: ['s_name','school','s_date','intern_cat','s_comment',
@@ -4787,10 +4787,10 @@ var TEACHER_PROGRESS_OVERRIDE = {
          't_note','t_sign','t_sign_date'],
   F10B: ['q_basic','q_self','q_progress','q_detail','q_t_sign','q_feeling','q_t_fb','q_all_sign',
          't_note','t_sign','t_sign_date'],
-  // D01 DOPS:NIV(Astral／Trilogy) — 老師端 (16 評分 + 5)
-  D01: ['D01_i1','D01_i2','D01_i3','D01_i4','D01_i5','D01_i6','D01_i7','D01_i8','D01_i9','D01_i10','D01_i11','D01_i12','D01_i13','D01_i14','D01_i15','D01_i16','score_grade','result','t_fb','t_sign','t_sign_date'],
-  // D02 DOPS:小兒呼吸器設定與操作(Servo) — 老師端 (18 評分 + 5)
-  D02: ['D02_i1','D02_i2','D02_i3','D02_i4','D02_i5','D02_i6','D02_i7','D02_i8','D02_i9','D02_i10','D02_i11','D02_i12','D02_i13','D02_i14','D02_i15','D02_i16','D02_i17','D02_i18','score_grade','result','t_fb','t_sign','t_sign_date'],
+  // D01 DOPS:小兒非侵襲性呼吸器(NIV) — 老師端 (17 評分 + 5)
+  D01: ['D01_i1','D01_i2','D01_i3','D01_i4','D01_i5','D01_i6','D01_i7','D01_i8','D01_i9','D01_i10','D01_i11','D01_i12','D01_i13','D01_i14','D01_i15','D01_i16','D01_i17','score_grade','result','t_fb','t_sign','t_sign_date'],
+  // D02 DOPS:呼吸器技術操作(Neonatal) — 老師端 (20 評分 + 5)
+  D02: ['D02_i1','D02_i2','D02_i3','D02_i4','D02_i5','D02_i6','D02_i7','D02_i8','D02_i9','D02_i10','D02_i11','D02_i12','D02_i13','D02_i14','D02_i15','D02_i16','D02_i17','D02_i18','D02_i19','D02_i20','score_grade','result','t_fb','t_sign','t_sign_date'],
 };
 
 function updateFormProgress(formId){
@@ -10728,60 +10728,65 @@ function calcF14Score(fid){
 
 const DOPS_DATA={
   D01:{
-    topic:'非侵襲性呼吸器(NIV) Astral／Trilogy 操作',
-    extra:'NIV 機型：□Astral　□Trilogy　□其他',
+    topic:'小兒非侵襲性呼吸器(NIV)',
+    extra:'呼吸器機型：□Bubble CPAP　□Trilogy　□Astral',
     groups:[
-      {hd:'執行技術前',items:[
-        '1. 確認醫囑與適應症',
-        '2. 確認病人(兩種方式)並向病人/家屬解釋治療目的',
-        '3. 技術執行前洗手、戴口罩，必要時穿戴防護裝備',
-        '4. 備物：NIV呼吸器(Astral／Trilogy)、合適面罩/鼻罩/鼻枕、頭帶、管路、過濾器、加溫潮濕設備、SpO₂監測',
-        '5. 評估並選擇合適介面與尺寸，注意密合度與皮膚保護',
-        '6. 連接管路與加溫潮濕，開機並完成功能與漏氣測試',
-        '7. 依醫囑設定模式與參數(CPAP 或 IPAP/EPAP、呼吸次數、Ti、上升時間、觸發/切換、FiO₂、警報範圍)',
+      {hd:'NIV使用前',items:[
+        {h:'呼吸器機型：□Bubble CPAP　□Trilogy　□Astral'},
+        '1. 確認醫囑',
+        '2. 確認病人(兩種方式)並解釋',
+        '3. 能說出使用NIV的目的',
+        '4. 能說出使用NIV的適應症、禁忌症、合併症',
+        '5. 非侵襲性呼吸器常見的種類',
+        '6. 技術執行前應洗手',
+        '7. 準備用物：\n聽診器、BiPAP或oxygen blender with flow meter、拋棄式管路、Nasal prong、Auto feeding、無菌蒸餾水、子母膠帶、棉線',
+        '8. 如何選擇nasal prong size或面罩',
+        '9. 正確操作組裝管路',
+        '10. 評估治療前生命徵象、呼吸音、呼吸型態、血液氣體分報告、血氧飽和度',
       ]},
-      {hd:'執行技術中',items:[
-        '8. 協助病人採半坐臥(30-45度)，固定介面避免過度壓迫',
-        '9. 監測：人機同步性、漏氣量、潮氣容積、SpO₂、生命徵象與病人耐受度',
-        '10. 依病人反應調整參數與漏氣補償，並排除警報(漏氣、阻塞、高/低壓)',
-        '11. 觀察並預防併發症(皮膚壓傷、腹脹、結膜炎、人機不同步)',
-        '12. 衛教病人/家屬配合方式與注意事項',
+      {hd:'NIV使用中',items:[
+        '11. 調整適當的PEEP值，觀察氣泡產生；\n或調整適當NIV設定',
+        '12. 評估：\n聽診呼吸音、病患呼吸型態是否和呼吸器同步、生命徵象、ABG',
+        '13. 正確紀錄',
+        '14. 監測：\n氣道壓力或管路埋入水瓶深度、漏氣、鼻中膈及鼻孔週為膚色發紅、壓瘡、管路扭曲或堵塞、積水',
+        '15. 能說出使用非侵襲呼吸器衰竭情形',
       ]},
-      {hd:'執行技術後',items:[
-        '13. 依病情調整脫離或持續使用，記錄使用參數與病人反應',
-        '14. 介面與管路依感染管制分類清潔/消毒',
-        '15. 技術執行後洗手',
-        '16. 正確記錄與交班',
+      {hd:'NIV使用後',items:[
+        '16. 拋棄式管路，丟置感染性垃圾桶',
+        '17. 儀器面板及表面以漂白水布擦拭，Nasal prong以2顆漂白錠浸泡30分鐘，送EO消毒',
       ]},
     ]
   },
   D02:{
-    topic:'小兒呼吸器初步設定與操作(Servo系列)',
-    extra:'呼吸器機型：Servo系列(I/C/U/AIR)',
+    topic:'呼吸器技術操作(Neonatal)',
+    extra:'呼吸器機型：□Drager系列(VN/V)　□Servo系列(N/U)',
     groups:[
       {hd:'呼吸器使用前',items:[
+        {h:'呼吸器機型：□Drager系列(VN/V)　□Servo系列(N/U)'},
         '1. 確認醫囑與適應症',
-        '2. 確認病人(兩種方式)',
-        '3. 技術執行前洗手、戴口罩、隔離衣(隔離病人)',
-        '4. 備物：呼吸器、呼吸器管路及附屬配件、自動加水器/MR850、無菌蒸餾水、吐氣端短軟管、細菌過濾器、吐氣端蓄水瓶、氧氣分析儀、測試肺、酒精棉片',
-        '5. 正確操作組裝管路',
-        '6. 呼吸器功能測試',
-        '7. 呼吸器初步設定',
+        '2. 確認病人(兩種方式)並解釋治療',
+        '3. 能說出使用呼吸器的目的',
+        '4. 能說出使用呼吸器的適應症、合併症',
+        '5. 技術執行前洗手、戴口罩、隔離衣(隔離病人)',
+        '6. 準備用物：\n呼吸器、呼吸器管路及附屬配件、自動加水器、無菌蒸餾水、吐氣端短軟管、細菌過濾器、吐氣蓄水瓶、氧氣分析儀、測試肺、酒精棉片',
+        '7. 正確操作組裝管路',
+        '8. 呼吸器功能測試',
+        '9. 呼吸器初步設定',
       ]},
       {hd:'呼吸器使用中',items:[
-        '8. 監測：聽診呼吸音、病人呼吸型態是否和呼吸器同步、生命徵象及ABG',
-        '9. 呼吸器障礙排除\n9.1 先檢查病人',
-        '9.2 依照呼吸器警報發生原因(管路積水、分泌物增加、漏氣)，調整呼吸器設定、改善病人呼吸的狀況、恢復警報或更換異常呼吸器',
-        '10. 病人使用之呼吸器面板，每日需使用漂白水布',
-        '11. 技術執行後應洗手',
-        '12. 正確記錄',
+        '10. 監測：\n病人的呼吸型態和呼吸器同步、生命徵象、ABG',
+        '11. 呼吸器障礙處理(先檢查病人)',
+        '12. 依照呼吸器警報發生原因(管路積水、分泌物增加、漏氣)，調整呼吸器設定、改善病人呼吸的狀況、恢復警報或更換異常呼吸器',
+        '13. 病人使用之呼吸器面板，每日須用漂白水布',
+        '14. 技術執行後應洗手',
+        '15. 正確記錄',
       ]},
       {hd:'呼吸器使用後',items:[
-        '13. 管路及附屬配件依分類處理',
-        '14. 呼吸器面板及呼吸器表面以漂白水布擦拭',
-        '15. 泡消\n15.1 Exp. cassette 75% 酒精浸泡30分鐘，烘乾即可。(servo系列)',
-        '15.2 細菌過濾器高溫殺菌消毒',
-        '15.3 管路以巴斯德消毒',
+        '16. 呼吸器面板及表面，以漂白水布擦拭',
+        '17. Temperature probe(感溫線)，以酒精擦拭',
+        '18. flow senor/Cassette以酒精浸泡30分鐘後，再以無菌蒸餾水沖洗後晾乾',
+        '19. 細菌過濾器，以高溫殺菌消毒',
+        '20. 重複性管路，以巴斯德消毒\n拋棄式管路，丟置感染性垃圾桶',
       ]},
     ]
   },
