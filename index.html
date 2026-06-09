@@ -7029,9 +7029,9 @@ function buildPDFContent(id,f,d,val,row,section,studentName,studentSchool,chk){
     html+='<table style="font-size:9pt;"><tr>';
     html+='<th style="background:#1A3A5C;color:#fff;padding:5px;border:1px solid #DDD;text-align:left;">核心技能</th>';
     html+='<th colspan="4" style="background:#2471A3;color:#fff;padding:5px;border:1px solid #DDD;text-align:center;">學後自評</th>';
-    html+='<th colspan="4" style="background:#C0392B;color:#fff;padding:5px;border:1px solid #DDD;text-align:center;">指導者評核(1)</th></tr>';
+    html+='<th colspan="4" style="background:#B45309;color:#fff;padding:5px;border:1px solid #DDD;text-align:center;">指導者評核(1)</th></tr>';
     html+='<tr><th style="border:1px solid #DDD;background:var(--cream);"></th>';
-    var bgs=['#D6EAF8','#D6EAF8','#D6EAF8','#D6EAF8','#FADBD8','#FADBD8','#FADBD8','#FADBD8'];
+    var bgs=['#D5F3EE','#D5F3EE','#D5F3EE','#D5F3EE','#FEF3C7','#FEF3C7','#FEF3C7','#FEF3C7'];
     ['佳','可','差','NA','佳','可','差','NA'].forEach(function(v,i){
       html+='<th style="background:'+bgs[i]+';border:1px solid #DDD;width:40px;text-align:center;padding:3px 2px;">'+v+'</th>';
     });
@@ -7040,7 +7040,7 @@ function buildPDFContent(id,f,d,val,row,section,studentName,studentSchool,chk){
       var post=d['f01_post_'+i]||'',p1=d['f01_p1_'+i]||'';
       html+='<tr><td style="padding:3px 6px;border:1px solid #DDD;font-size:9pt;">'+(i+1)+'. '+skill+'</td>';
       ['佳','可','差','NA'].forEach(function(v){var s=post===v;html+='<td style="text-align:center;border:1px solid #DDD;background:'+(s?(v==='NA'?'#7F8C8D':'#2471A3'):'#fff')+';font-size:12pt;color:'+(s?'#fff':'transparent')+';">✓</td>';});
-      ['佳','可','差','NA'].forEach(function(v){var s=p1===v;html+='<td style="text-align:center;border:1px solid #DDD;background:'+(s?(v==='NA'?'#7F8C8D':'#C0392B'):'#FEF9F9')+';font-size:12pt;color:'+(s?'#fff':'transparent')+';">✓</td>';});
+      ['佳','可','差','NA'].forEach(function(v){var s=p1===v;html+='<td style="text-align:center;border:1px solid #DDD;background:'+(s?(v==='NA'?'#7F8C8D':'#D97706'):'#FEF9F9')+';font-size:12pt;color:'+(s?'#fff':'transparent')+';">✓</td>';});
       html+='</tr>';
     });
     html+='</table>';
@@ -7287,9 +7287,9 @@ function buildPDFContent(id,f,d,val,row,section,studentName,studentSchool,chk){
     html+='</table>';
 
     // ── 指導教師回饋（網頁順序：回饋 → 老師簽名 → 老師簽名日期 → 建議追蹤日期）──
-    html+='<div class="section-head">指導教師回饋</div>';
+    html+='<div class="section-head">實習總指導教師回饋</div>';
     html+='<table>';
-    html+=pdfR('指導教師回饋',val('t_fb')||'—',true);
+    html+=pdfR('實習總指導教師回饋',val('t_fb')||'—',true);
     html+=pdfR('老師簽名',val('t_sign')||'—',true);
     html+=pdfR('老師簽名日期',formatSignTs(val('t_sign_date')),true);
     html+=pdfR('建議追蹤日期',formatSignTs(val('follow_date')),true);
@@ -7436,7 +7436,7 @@ function buildPDFContent(id,f,d,val,row,section,studentName,studentSchool,chk){
     html+=pdfR('學生簽名',val('s_sign'),false);
     html+=pdfR('學生簽名日期',formatSignTs(val('s_sign_date')),false);
     html+='</table>';
-    html+='<div class="section-head">老師回饋與簽名</div>';
+    html+='<div class="section-head">臨床實習總導師回饋與簽名</div>';
     html+='<table>';
     html+=pdfR('老師回饋',val('t_fb'),true);
     html+=pdfR('老師簽名',val('t_sign'),true);
@@ -9787,17 +9787,17 @@ function buildF01B(f,d,canT,fkey,canS){
   h+='<div class="card"><div class="card-head"><div class="card-head-title">核心技能評核<span class="t-badge">指導者欄位需老師填寫</span></div></div><div class="card-body" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">';
   h+='<table class="rating-table f01b-table"><tr>';
   h+='<th style="text-align:left;position:sticky;left:0;z-index:2;background:var(--cream);min-width:90px;max-width:120px;">核心技能學習目標</th>';
-  h+='<th colspan="4" style="background:#EBF5FB;">學後自評</th>';
-  h+='<th colspan="4" style="background:#FDEDEC;">指導者評核(1)<span class="t-badge">老師</span></th></tr>';
+  h+='<th colspan="4" style="background:#D5F3EE;">學後自評</th>';
+  h+='<th colspan="4" style="background:#FEF3C7;">指導者評核(1)<span class="t-badge">老師</span></th></tr>';
   h+='<tr>';
   h+='<th style="position:sticky;left:0;z-index:2;background:var(--cream);"></th>';
-  h+='<th style="background:#EBF5FB;">佳</th><th style="background:#EBF5FB;">可</th><th style="background:#EBF5FB;">差</th><th style="background:#EBF5FB;">NA</th>';
-  h+='<th style="background:#FDEDEC;">佳</th><th style="background:#FDEDEC;">可</th><th style="background:#FDEDEC;">差</th><th style="background:#FDEDEC;">NA</th></tr>';
+  h+='<th style="background:#D5F3EE;">佳</th><th style="background:#D5F3EE;">可</th><th style="background:#D5F3EE;">差</th><th style="background:#D5F3EE;">NA</th>';
+  h+='<th style="background:#FEF3C7;">佳</th><th style="background:#FEF3C7;">可</th><th style="background:#FEF3C7;">差</th><th style="background:#FEF3C7;">NA</th></tr>';
   skills.forEach(function(skill,i){
     var k1='f01_p1_'+i,kpo='f01_post_'+i;
     h+='<tr><td class="row-label f01b-label" style="position:sticky;left:0;background:#FAFAF8;z-index:1;max-width:120px;word-break:break-all;font-size:10px;">'+(i+1)+'. '+skill+'</td>';
-    ['佳','可','差','NA'].forEach(function(v){h+='<td style="text-align:center;background:#F5F9FF;">'+mkBtn(kpo,v,false)+'</td>';});
-    ['佳','可','差','NA'].forEach(function(v){h+='<td style="text-align:center;background:#FFF5F5;">'+mkBtn(k1,v,true)+'</td>';});
+    ['佳','可','差','NA'].forEach(function(v){h+='<td style="text-align:center;background:#EAF8F5;">'+mkBtn(kpo,v,false)+'</td>';});
+    ['佳','可','差','NA'].forEach(function(v){h+='<td style="text-align:center;background:#FFFBEB;">'+mkBtn(k1,v,true)+'</td>';});
     h+='</tr>';
   });
   h+='</table></div></div>';
@@ -9821,7 +9821,7 @@ function buildF02(f,d,canT,fkey,canS){
   if(canS===undefined)canS=true;
   const items=['瞭解新生兒與小兒身體檢查評估','瞭解新生兒常見診斷及特徵','瞭解小兒呼吸器管路裝置','小兒呼吸器管路裝置功能測試','瞭解Nasal CPAP管路裝置及操作','熟悉在保溫箱中更換管路','完成病人評估與呼吸器設定','確實填寫呼吸治療相關記錄單','瞭解ECMO臨床使用及呼吸器設定','瞭解HFOV呼吸器管路裝置、設定及操作','瞭解NO儀器裝置、設定與注意事項','瞭解Surfactant replacement therapy','擬定呼吸照護計劃','確實交班'];
   let h=basicInfoCard(fid,d,'');
-  h+=`<div class="card"><div class="card-head"><div class="card-head-title">臨床表現評估（非常好5 / 好4 / 普通3 / 不好2 / 非常差1）</div></div><div class="card-body" style="overflow-x:auto;"><table class="rating-table">
+  h+=`<div class="card"><div class="card-head"><div class="card-head-title">臨床表現評估（非常好5 / 好4 / 普通3 / 不好2 / 非常差1）<span class="s-badge">學生</span></div></div><div class="card-body" style="overflow-x:auto;"><table class="rating-table">
   <tr><th style="text-align:left;">評估項目</th><th>非常好(5)</th><th>好(4)</th><th>普通(3)</th><th>不好(2)</th><th>非常差(1)</th></tr>`;
   items.forEach((item,i)=>{
     const key=`f02_${i}`;
@@ -9839,7 +9839,7 @@ function buildF02(f,d,canT,fkey,canS){
     <div class="t-block">
       <div class="t-block-title">✏️ 實習總指導教師回饋與簽名</div>
       <div class="field"><label>實習總指導教師回饋<span class="t-badge">老師</span></label>${ta(fid,'t_fb',3,!canT)}</div>
-      ${teacherSignRow(fid,'t_sign',canT)}
+      ${teacherSignRow(fid,'t_sign',canT,'實習總指導教師簽名')}
     </div>
   </div></div>`;
   return h;
@@ -10078,12 +10078,12 @@ function buildF04Bedside(f,d,canT,fkey,canS){
   h+='</div></div>';
 
   // 二、呼吸問題確立
-  h+='<div class="card"><div class="card-head"><div class="card-head-title">二、呼吸問題確立 — Indications of mechanical ventilation（可複選）</div></div><div class="card-body">';
+  h+='<div class="card"><div class="card-head"><div class="card-head-title">二、呼吸問題確立 — Indications of mechanical ventilation（可複選）<span class="s-badge">學生</span></div></div><div class="card-body">';
   h+='<div style="flex-wrap:wrap;display:flex;gap:4px 16px;margin-bottom:8px;">'+indHtml+'</div>';
   h+='</div></div>';
 
   // 三、呼吸治療評估
-  h+='<div class="card"><div class="card-head"><div class="card-head-title">三、呼吸治療評估</div></div><div class="card-body">';
+  h+='<div class="card"><div class="card-head"><div class="card-head-title">三、呼吸治療評估<span class="s-badge">學生</span></div></div><div class="card-body">';
   h+='<div style="margin-bottom:10px;">';
   h+='<label style="font-size:12px;font-weight:600;">呼吸器機型：</label>';
   h+='<div style="display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:4px;">'+ventHtml+'</div>';
@@ -10469,11 +10469,11 @@ function buildF11(f,d,canT,fkey,canS){
   h+=`<div class="card"><div class="card-head"><div class="card-head-title">個人化學習計畫（學生填寫）</div></div><div class="card-body">
     ${flds.map(([k,l,r])=>`<div class="field"><label>${l}</label>${ta(fid,k,r,false)}</div>`).join('')}
   </div></div>`;
-  h+=`<div class="card"><div class="card-head"><div class="card-head-title">指導教師回饋<span class="t-badge">老師</span></div></div><div class="card-body">
+  h+=`<div class="card"><div class="card-head"><div class="card-head-title">實習總指導教師回饋<span class="t-badge">老師</span></div></div><div class="card-body">
     <div class="field">${ta(fid,'t_fb',4,!canT)}</div>
     <div class="g2">
-      <div class="field"><label>老師簽名<span class="t-badge">老師</span></label>${makeDropdown(fid,'t_sign',getTeacherList(),!canT,'請選擇老師',true)}</div>
-      <div class="field"><label>老師簽名日期<span class="t-badge">老師</span></label><input type="date" value="${d['t_sign_date']||''}" ${!canT?'disabled':''} data-fid="${fid}" data-key="t_sign_date" onchange="saveDraftField('${fid}','t_sign_date',this.value)" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r);background:${!canT?'var(--cream)':'#fff'};color:var(--ink);font-size:13px;"></div>
+      <div class="field"><label>實習總指導教師簽名<span class="t-badge">老師</span></label>${makeDropdown(fid,'t_sign',getTeacherList(),!canT,'請選擇實習總指導教師',true)}</div>
+      <div class="field"><label>實習總指導教師簽名日期<span class="t-badge">老師</span></label><input type="date" value="${d['t_sign_date']||''}" ${!canT?'disabled':''} data-fid="${fid}" data-key="t_sign_date" onchange="saveDraftField('${fid}','t_sign_date',this.value)" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r);background:${!canT?'var(--cream)':'#fff'};color:var(--ink);font-size:13px;"></div>
     </div>
     <div class="g2"><div class="field"><label>建議追蹤日期<span class="t-badge">老師</span></label><input data-teacher="1" type="date" value="${d['follow_date']||''}" ${!canT?'disabled':''} data-fid="${fid}" data-key="follow_date" onchange="saveDraftField('${fid}','follow_date',this.value)" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r);background:${!canT?'var(--cream)':'#fff'};color:var(--ink);font-size:13px;"></div><div></div></div>
   </div></div>`;
@@ -11276,7 +11276,7 @@ function buildF15(f,d,canT,fkey,canS){
     <!-- ═══ 個人反思區 結束 ═══ -->
 
     ${studentSignRow(fid,'s_sign')}
-    <div class="t-block"><div class="t-block-title">✏️ 老師回饋與簽名</div>
+    <div class="t-block"><div class="t-block-title">✏️ 臨床實習總導師回饋與簽名</div>
     <div class="field"><label>師生檢討與回饋<span class="t-badge">老師</span></label>${ta(fid,'t_fb',4,!canT)}</div>
     ${teacherSignRow(fid,'t_sign',canT,'實習總指導教師簽名')}
     <div class="g2">
