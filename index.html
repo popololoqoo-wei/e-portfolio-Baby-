@@ -14952,26 +14952,7 @@ function cohortSections(students){
       dBody+=row+'</tr>';
     });
     html+=_cohTbl(dHead,dBody);
-    // EPA 表
-    html+='<div style="font-size:13px;font-weight:700;color:#991B1B;margin:12px 0 4px;">EPA 可信賴專業活動（信賴等級 1–5；UGY 上限 Level 2）</div>';
-    var eHead='<tr>'+_cohTh('學生')+epas.map(function(f){
-      var parts=f.name.replace('EPA ','').split('：');   // 例:['(6)','侵襲性呼吸器初始設定']
-      var label='<b>'+parts[0]+'</b>'+(parts[1]?'<br><span style="font-weight:400;font-size:11px;">'+parts[1]+'</span>':'');
-      return '<th style="background:#0B7D70;color:#fff;padding:6px 8px;border:1px solid #cbd5e1;font-weight:600;">'+label+'</th>';
-    }).join('')+'</tr>';
-    var eBody='';
-    students.forEach(function(s){
-      var row='<tr>'+_cohTd('<b>'+_cohEsc(s.name)+'</b>','background:#FAFBFF;');
-      epas.forEach(function(f){
-        var lv=cohortEpaLevel(s.sid,f.id);
-        var st=getStudentFormStatus(f.id,s.sid);
-        var cell = lv ? '<span style="font-weight:700;color:#0B7D70;">Level '+_cohEsc(lv)+'</span>' : (st==='draft'?'<span style="color:#D97706;">填寫中</span>':'<span style="color:#bbb;">未評</span>');
-        row+=_cohTd(cell,'text-align:center;');
-      });
-      eBody+=row+'</tr>';
-    });
-    html+=_cohTbl(eHead,eBody);
-    secs.push({id:'dopsepa', title:'⑥ DOPS／EPA 完成度與分數', html:html});
+    secs.push({id:'dopsepa', title:'⑥ DOPS 完成度與分數', html:html});
   })();
 
   /* 7) 教師評分型表單（臨床表現 / CbD / 360 / 實習總評值） */
@@ -15193,7 +15174,6 @@ function cohortSections(students){
       {label:'學習評估',ids:['F11','F01A','F01B','F02','F04M','F04S','F06M','F06S','F07M','F07S','F08','F09','F10A','F10B','F12']},
       {label:'個案報告',ids:['F13','F14']},
       {label:'DOPS',ids:['D01','D02','D03','D04']},
-      {label:'EPA',ids:['E01','E02','E03']},
       {label:'課後測驗',ids:['F-CT01','F-CT02','F-CT03','F-CT04','F-CT05','F-CT06','F-CT07','F-CT08','F-CT09','F-CT10','F-CT11','F-CT12']},
       {label:'總評值',ids:['F15']}
     ];
