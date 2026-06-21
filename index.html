@@ -13284,7 +13284,7 @@ function renderAdmin(){
             </div>
           </div>
         </details>
-        <table class="accounts-table" id="student-table"></table>
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table class="accounts-table" id="student-table" style="min-width:1080px;"></table></div>
       </div>
     </div>
 
@@ -14407,7 +14407,7 @@ function refreshStudentTable(){
       '</td>'+
       '<td>'+pwdCell+'</td>'+
       '<td style="'+expiryColor+'">'+
-        '<input type="date" value="'+escAttr(_normalizeDateStr(acc.expiry))+'" style="padding:2px 6px;border:1px solid var(--border);border-radius:4px;font-size:11px;width:120px;" onchange="updateStudentExpiry(\''+escAttr(sid)+'\',this.value)">'+
+        '<input type="date" value="'+escAttr(_normalizeDateStr(acc.expiry))+'" style="padding:2px 6px;border:1px solid var(--border);border-radius:4px;font-size:11px;width:142px;" onchange="updateStudentExpiry(\''+escAttr(sid)+'\',this.value)">'+
         (expired?'<span style="color:var(--red);font-size:10px;display:block;">已失效</span>':'')+
         (noExpiry?'<div style="margin-top:3px;"><span style="color:#B45309;font-size:10px;">⚠ 永久有效(無期限)</span> <button type="button" style="font-size:9px;padding:1px 6px;background:#FEF3C7;border:1px solid #F59E0B;border-radius:3px;cursor:pointer;color:#92400E;" onclick="applyDefaultExpiry(\''+escAttr(sid)+'\')" title="套用 90 天後到期">套用 90 天</button></div>':'')+
       '</td>'+
