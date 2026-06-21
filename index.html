@@ -11810,10 +11810,15 @@ function buildF16(f,d,canT,fkey,canS){
     if(!APP.formData[fid])APP.formData[fid]={};
     if(d['s_name']!==_f16Nm){APP.formData[fid]['s_name']=_f16Nm;d['s_name']=_f16Nm;}
   }
+  // ★ 自動帶入實習學校／類別／日期(學生本人或老師選定的學生)
+  autoFillInternInfo(fid,d);
   const cats=['基礎呼吸照護實習','重症呼吸照護實習','小兒呼吸照護實習','長期呼吸照護實習','綜合臨床實習'];
-  const schools=['長庚科技大學嘉義分部-呼吸照護系','高雄醫學大學-呼吸治療學系','輔仁大學-呼吸治療學系','長庚大學-呼吸治療學系','台北醫學大學-呼吸治療學系'];
+  const schools=(APP.config&&APP.config.schools)||['長庚科技大學嘉義分部-呼吸照護系','高雄醫學大學-呼吸治療學系','輔仁大學-呼吸治療學系','長庚大學-呼吸治療學系','台北醫學大學-呼吸治療學系'];
   const catOpts=cats.map(function(v){return '<option value="'+v+'" '+((d['intern_cat']||d['cat'])===v?'selected':'')+'>'+v+'</option>';}).join('');
-  const schOpts=schools.map(function(v){return '<option value="'+v+'" '+(d['school']===v?'selected':'')+'>'+v+'</option>';}).join('');
+  let schOpts=schools.map(function(v){return '<option value="'+v+'" '+(d['school']===v?'selected':'')+'>'+v+'</option>';}).join('');
+  // 若帳號帶入的學校不在清單中，補成已選取選項，避免顯示「請選擇」
+  var _f16sch=d['school']||'';
+  if(_f16sch && schools.indexOf(_f16sch)<0){ schOpts='<option value="'+_f16sch+'" selected>'+_f16sch+'</option>'+schOpts; }
 
   let h='';
   // ── 基本資料 ──
