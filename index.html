@@ -15550,22 +15550,24 @@ function connectGoogleSheets(){
 }
 
 /* ── 帳號期限管理 ── */
-function updateStudentExpiry(sid, date) {
-  if (APP.students[sid]) {
-    APP.students[sid].expiry = date;
-    saveConfigToSheets();
-    toast('帳號期限已更新');
-  }
+async function updateStudentExpiry(sid, date) {
+  var acc = APP.students[sid];
+  if (!acc) return;
+  acc.expiry = date;
+  var result = await callBackend('updateStudent', {sid:sid, name:acc.name, school:acc.school||'', expiry:date});
+  if(!result || !result.ok){ toast('⚠ 帳號期限已暫存本機，但後端未確認（可能需更新後端版本）', false); }
+  else { toast('✓ 帳號期限已更新'); }
 }
 
 /* ── 一鍵套用「90 天後」到指定學生 ──
    用於「⚠ 永久有效」舊帳號的快速防呆補修 */
-function applyDefaultExpiry(sid) {
+async function applyDefaultExpiry(sid) {
   if (!APP.students[sid]) return;
   var defExp = computeDefaultExpiry(90);
   if (!confirm('將「' + (APP.students[sid].name || sid) + '」的帳號期限設為:\n\n' + defExp + ' (90 天後)\n\n是否確認?')) return;
-  APP.students[sid].expiry = defExp;
-  saveConfigToSheets();
+  var acc = APP.students[sid];
+  acc.expiry = defExp;
+  await callBackend('updateStudent', {sid:sid, name:acc.name, school:acc.school||'', expiry:defExp});
   refreshStudentTable();
   toast('✓ 已將 ' + sid + ' 的帳號期限設為 ' + defExp);
 }
@@ -15610,7 +15612,7 @@ function _batchGetSelectedSids() {
 }
 
 /* 批次:把選取的學生「期限延長 N 天」(從今天起算)*/
-function batchExtendDays(days) {
+async function batchExtendDays(days) {
   var sids = _batchGetSelectedSids();
   if (sids.length === 0) {
     toast('⚠ 請先勾選要批次處理的學生帳號');
@@ -15623,16 +15625,17 @@ function batchExtendDays(days) {
   }).join('\n');
   if (sids.length > 5) preview += '\n  ... 等共 ' + sids.length + ' 位';
   if (!confirm('將以下 ' + sids.length + ' 位學生的帳號期限,統一設為 ' + newExp + ' (今天 +' + label + '):\n\n' + preview + '\n\n是否確認?')) return;
-  sids.forEach(function(sid){
-    APP.students[sid].expiry = newExp;
-  });
-  saveConfigToSheets();
+  for (var i=0;i<sids.length;i++){
+    var acc=APP.students[sids[i]]; if(!acc) continue;
+    acc.expiry = newExp;
+    await callBackend('updateStudent', {sid:sids[i], name:acc.name, school:acc.school||'', expiry:newExp});
+  }
   refreshStudentTable();
   toast('✓ 已將 ' + sids.length + ' 位學生的期限延長至 ' + newExp);
 }
 
 /* 批次:把選取的學生「期限統一設為某日期」(讀取 #batch-set-date 的值)*/
-function batchSetExpiry() {
+async function batchSetExpiry() {
   var dateEl = document.getElementById('batch-set-date');
   if (!dateEl || !dateEl.value) {
     toast('⚠ 請先選擇要設定的日期');
@@ -15653,10 +15656,11 @@ function batchSetExpiry() {
   }).join('\n');
   if (sids.length > 5) preview += '\n  ... 等共 ' + sids.length + ' 位';
   if (!confirm('將以下 ' + sids.length + ' 位學生的帳號期限,統一設為:\n\n' + newExp + '\n\n' + preview + '\n\n是否確認?')) return;
-  sids.forEach(function(sid){
-    APP.students[sid].expiry = newExp;
-  });
-  saveConfigToSheets();
+  for (var i=0;i<sids.length;i++){
+    var acc=APP.students[sids[i]]; if(!acc) continue;
+    acc.expiry = newExp;
+    await callBackend('updateStudent', {sid:sids[i], name:acc.name, school:acc.school||'', expiry:newExp});
+  }
   refreshStudentTable();
   toast('✓ 已將 ' + sids.length + ' 位學生的期限設為 ' + newExp);
 }
