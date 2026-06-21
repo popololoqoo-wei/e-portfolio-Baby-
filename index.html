@@ -11587,8 +11587,12 @@ function getF16TopStyles(scores){
 
 // 產生雷達圖 SVG（七邊形雷達；可同時用於網頁與 PDF）
 // scores: {VS,SC,PS,AL,VB,SL,LG}; size: 圖示寬高（px）
-function buildF16RadarSVG(scores, size){
+function buildF16RadarSVG(scores, size, opts){
   size = size || 480;
+  opts = opts || {};
+  var padX = opts.pad ? Math.round(size*0.22) : 0;   // 左右留白，避免向度標籤被裁切
+  var padTop = opts.pad ? Math.round(size*0.07) : 0; // 上方留白，避免頂部標籤與上方文字重疊
+  var vbW = size + padX*2, vbH = size + padTop;
   var cx = size/2, cy = size/2;
   var maxR = size * 0.36;  // 雷達半徑
   var maxScore = 20;
@@ -11599,9 +11603,9 @@ function buildF16RadarSVG(scores, size){
     var a = angleFor(i);
     return [cx + r*Math.cos(a), cy + r*Math.sin(a)];
   }
-  var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+size+' '+size+'" width="'+size+'" height="'+size+'" style="display:block;margin:0 auto;font-family:sans-serif;">';
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="'+(-padX)+' '+(-padTop)+' '+vbW+' '+vbH+'" width="'+vbW+'" height="'+vbH+'" style="display:block;margin:0 auto;font-family:sans-serif;">';
   // 背景
-  svg += '<rect width="'+size+'" height="'+size+'" fill="#FFFFFF"/>';
+  svg += '<rect x="'+(-padX)+'" y="'+(-padTop)+'" width="'+vbW+'" height="'+vbH+'" fill="#FFFFFF"/>';
   // 同心七邊形（4 層，分別代表 5、10、15、20 分）
   for(var lvl=1; lvl<=4; lvl++){
     var r = maxR * lvl / 4;
@@ -11646,6 +11650,15 @@ function buildF16RadarSVG(scores, size){
   // 資料點
   for(var i=0; i<n; i++){
     svg += '<circle cx="'+dataPts[i][0].toFixed(2)+'" cy="'+dataPts[i][1].toFixed(2)+'" r="4" fill="#C0392B"/>';
+  }
+  // 各向度分數落點標註（小字＋白色描邊，避免影響整體呈現）
+  if(opts.showScores){
+    var fsz = Math.max(9, Math.round(size*0.045));
+    for(var i=0; i<n; i++){
+      var scv = scores[F16_AXIS_ORDER[i]] || 0;
+      var lp = pt(i, maxR*Math.min(scv/maxScore,1) + 12);
+      svg += '<text x="'+lp[0].toFixed(2)+'" y="'+(lp[1]+fsz*0.35).toFixed(2)+'" text-anchor="middle" font-size="'+fsz+'" font-weight="700" fill="#7F1D1D" stroke="#FFFFFF" stroke-width="2.5" paint-order="stroke">'+scv+'</text>';
+    }
   }
   svg += '</svg>';
   return svg;
@@ -14843,7 +14856,7 @@ function cohortSections(students){
       } else { topTxt='未完成'; }
       var inner='<div style="font-weight:700;font-size:14px;color:#0B7D70;">'+_cohEsc(s.name)+'</div>'
         +'<div style="font-size:12px;font-weight:700;margin:2px 0 2px;color:'+(sc?'#7F1D1D':'#bbb')+';">主要風格：'+_cohEsc(topTxt)+'</div>'
-        +(sc?buildF16RadarSVG(sc,230):'<div style="height:200px;line-height:200px;color:#bbb;font-size:13px;">（未完成）</div>');
+        +(sc?buildF16RadarSVG(sc,230,{pad:true,showScores:true}):'<div style="height:200px;line-height:200px;color:#bbb;font-size:13px;">（未完成）</div>');
       html+='<td style="width:50%;text-align:center;vertical-align:top;padding:6px;page-break-inside:avoid;border:1px solid #e2e8f0;">'+inner+'</td>';
       if(si%2===1) html+='</tr>';
       else if(si===students.length-1) html+='<td style="width:50%;border:1px solid #e2e8f0;"></td></tr>';
