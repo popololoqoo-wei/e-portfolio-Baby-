@@ -456,6 +456,7 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 .field textarea{resize:vertical;min-height:72px;line-height:1.6;}
 .t-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:999px;background:#FEF3C7;color:#B45309;border:1px solid #FCD34D;margin-left:6px;font-weight:600;letter-spacing:.2px;}
 .s-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:999px;background:var(--blue-soft);color:var(--blue);border:1px solid var(--blue-line);margin-left:6px;font-weight:600;letter-spacing:.2px;}
+.m-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:999px;background:linear-gradient(90deg,var(--blue-soft) 0%,#FEF3C7 100%);color:#B45309;border:1px solid #FCD34D;margin-left:6px;font-weight:600;letter-spacing:.2px;}
 
 /* ─── 表單填寫進度條(置於 form-detail-header 下方) ─── */
 .form-progress{
@@ -642,7 +643,8 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 .form-detail-view .dops-tbl .item-cell{font-size:12px !important;}
 /* badge 統一 */
 .form-detail-view .t-badge,
-.form-detail-view .s-badge{font-size:10px !important;}
+.form-detail-view .s-badge,
+.form-detail-view .m-badge{font-size:10px !important;}
 /* 表單區內 inline span/div 預設字體（不影響特定 size class） */
 .form-detail-view .card-body > div:not([class]),
 .form-detail-view .card-body > span:not([class]){font-size:12px;}
@@ -4750,6 +4752,20 @@ function applyCardColors(){
         card.classList.add('s-card');
       }
       // 完全中性的不染色
+    }
+    // ── 標籤文字與配色一致：綠=「學生」、黃=「老師」、混色=「學生＋老師」──
+    var _head=card.querySelector('.card-head-title');
+    if(_head){
+      _head.querySelectorAll('.s-badge,.t-badge,.m-badge').forEach(function(b){b.remove();});
+      var _lab='', _cls='';
+      if(card.classList.contains('m-card')){ _lab='學生＋老師'; _cls='m-badge'; }
+      else if(card.classList.contains('t-card')){ _lab='老師'; _cls='t-badge'; }
+      else if(card.classList.contains('s-card')){ _lab='學生'; _cls='s-badge'; }
+      if(_lab){
+        var _sp=document.createElement('span');
+        _sp.className=_cls; _sp.textContent=_lab;
+        _head.appendChild(_sp);
+      }
     }
   });
 }
