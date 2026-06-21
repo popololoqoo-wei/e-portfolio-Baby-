@@ -14825,42 +14825,30 @@ function cohortSections(students){
     secs.push({id:'overview', title:'① 整體表單完成率', html:html});
   })();
 
-  /* 2) Learning Style 四人總匯 */
+  /* 2) Learning Style 四人總匯（四宮格雷達圖） */
   (function(){
     var dims=F16_AXIS_ORDER;
-    var dimLabels=dims.map(function(c){return F16_STYLES[c].zh;});
     var stuScores=students.map(function(s){return cohortF16(s.sid);});
-    var matrix=dims.map(function(code){
-      return stuScores.map(function(sc){ return sc?sc[code]:null; });
-    });
     var html='';
-    html+=_cohNote('每向度滿分 20 分（七向度：視覺／社交／身體／聽覺／言語／獨立／邏輯）。各學生最高分向度即其主要學習風格，可作為帶教方式調整參考。');
-    html+=_cohChartBox(cohortGroupedBarSVG(dimLabels, names, matrix, 20, {height:340, valueLabels:false}));
-    // 表格：主要風格
-    var head='<tr>'+_cohTh('學生')+dimLabels.map(function(l){return _cohTh(l);}).join('')+_cohTh('主要風格')+'</tr>';
-    var body='';
+    html+=_cohNote('每向度滿分 20 分（七向度：視覺／社交／身體／聽覺／言語／獨立／邏輯）。雷達圖向外擴越大代表該向度越強；每位學生最高分的向度即其「主要學習風格」，已標示於各圖上方。');
+    html+='<table style="width:100%;border-collapse:collapse;table-layout:fixed;">';
     students.forEach(function(s,si){
+      if(si%2===0) html+='<tr>';
       var sc=stuScores[si];
-      var row='<tr>'+_cohTd('<b>'+_cohEsc(s.name)+'</b>','background:#FAFBFF;');
-      var top='—';
+      var topTxt;
       if(sc){
-        // 先找最高分，再把所有「同為最高分」的向度都視為主要風格（同分併列，與個人詳細頁一致）
-        var maxv=-1;
-        dims.forEach(function(c){ if(sc[c]>maxv){maxv=sc[c];} });
+        var maxv=-1; dims.forEach(function(c){ if(sc[c]>maxv)maxv=sc[c]; });
         var topCodes=dims.filter(function(c){ return sc[c]===maxv; });
-        dims.forEach(function(c){
-          var isTop=(topCodes.indexOf(c)>=0);
-          row+=_cohTd(sc[c],(isTop?'background:#FCA5A5;font-weight:800;color:#7F1D1D;':''));
-        });
-        top = (maxv>0 && topCodes.length>0) ? topCodes.map(function(c){return F16_STYLES[c].zh;}).join('、') : '—';
-      } else {
-        dims.forEach(function(){ row+=_cohTd('—','text-align:center;color:#bbb;'); });
-        top='<span style="color:#bbb;">未完成</span>';
-      }
-      row+=_cohTd(top,'text-align:center;font-weight:600;')+'</tr>';
-      body+=row;
+        topTxt=(maxv>0&&topCodes.length)?topCodes.map(function(c){return F16_STYLES[c].zh;}).join('、'):'—';
+      } else { topTxt='未完成'; }
+      var inner='<div style="font-weight:700;font-size:14px;color:#0B7D70;">'+_cohEsc(s.name)+'</div>'
+        +'<div style="font-size:12px;font-weight:700;margin:2px 0 2px;color:'+(sc?'#7F1D1D':'#bbb')+';">主要風格：'+_cohEsc(topTxt)+'</div>'
+        +(sc?buildF16RadarSVG(sc,230):'<div style="height:200px;line-height:200px;color:#bbb;font-size:13px;">（未完成）</div>');
+      html+='<td style="width:50%;text-align:center;vertical-align:top;padding:6px;page-break-inside:avoid;border:1px solid #e2e8f0;">'+inner+'</td>';
+      if(si%2===1) html+='</tr>';
+      else if(si===students.length-1) html+='<td style="width:50%;border:1px solid #e2e8f0;"></td></tr>';
     });
-    html+=_cohTbl(head,body);
+    html+='</table>';
     secs.push({id:'f16', title:'② Learning Style 四人總匯', html:html});
   })();
 
