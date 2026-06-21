@@ -14856,8 +14856,8 @@ function cohortSections(students){
       } else { topTxt='未完成'; }
       var inner='<div style="font-weight:700;font-size:14px;color:#0B7D70;">'+_cohEsc(s.name)+'</div>'
         +'<div style="font-size:12px;font-weight:700;margin:2px 0 2px;color:'+(sc?'#7F1D1D':'#bbb')+';">主要風格：'+_cohEsc(topTxt)+'</div>'
-        +(sc?buildF16RadarSVG(sc,230,{pad:true,showScores:true}):'<div style="height:200px;line-height:200px;color:#bbb;font-size:13px;">（未完成）</div>');
-      html+='<td style="width:50%;text-align:center;vertical-align:top;padding:6px;page-break-inside:avoid;border:1px solid #e2e8f0;">'+inner+'</td>';
+        +(sc?buildF16RadarSVG(sc,200,{pad:true,showScores:true}):'<div style="height:170px;line-height:170px;color:#bbb;font-size:13px;">（未完成）</div>');
+      html+='<td style="width:50%;text-align:center;vertical-align:top;padding:4px;page-break-inside:avoid;border:1px solid #e2e8f0;">'+inner+'</td>';
       if(si%2===1) html+='</tr>';
       else if(si===students.length-1) html+='<td style="width:50%;border:1px solid #e2e8f0;"></td></tr>';
     });
