@@ -15044,10 +15044,9 @@ function cohortSections(students){
       return '<div style="font-size:13px;font-weight:700;color:#0B7D70;margin:10px 0 4px;">'+_cohEsc(subjLabel)+'</div>'+_cohTbl(head,body+avgRow);
     }
     var html='';
-    html+=_cohNote('CbD（病例導向討論）共 7 項評核，每項 1–9 分（1–3 有待加強／4–6 合乎標準／7–9 優良；<b>UGY 每項需 ≥5</b>，低於 5 以紅字標示）。內、外科分開呈現，最右欄為該生平均、最下列為各項全班平均。');
-    html+=cbdBlock('F06M','CbD 內科');
-    html+=cbdBlock('F06S','CbD 外科');
-    secs.push({id:'cbd', title:'⑧ CbD 評估（內科／外科）', html:html});
+    html+=_cohNote('CbD（病例導向討論）共 7 項評核，每項 1–9 分（1–3 有待加強／4–6 合乎標準／7–9 優良；<b>UGY 每項需 ≥5</b>，低於 5 以紅字標示）。最右欄為該生平均、最下列為各項全班平均。');
+    html+=cbdBlock('F06M','CbD');
+    secs.push({id:'cbd', title:'⑧ CbD 評估', html:html});
   })();
 
   /* 9) 360 度評估（內科 / 外科，態度／臨床智能／換算總分，仿 360 評估表） */
@@ -15083,10 +15082,9 @@ function cohortSections(students){
       return '<div style="font-size:13px;font-weight:700;color:#0B7D70;margin:10px 0 4px;">'+_cohEsc(subjLabel)+'</div>'+_cohTbl(head,body);
     }
     var html='';
-    html+=_cohNote('360 度評估分態度與臨床智能兩面向：態度基本分 80（<b>及格 ≥80</b>）、臨床智能基本分 75（<b>及格 ≥75</b>），換算總分為兩者各半、<b style="color:#DC2626;">及格 ≥70</b>。內、外科分開呈現，未達標以紅字標示。');
-    html+=f360Block('F07M','360 度 內科');
-    html+=f360Block('F07S','360 度 外科');
-    secs.push({id:'f360', title:'⑨ 360 度評估（內科／外科）', html:html});
+    html+=_cohNote('360 度評估分態度與臨床智能兩面向：態度基本分 80（<b>及格 ≥80</b>）、臨床智能基本分 75（<b>及格 ≥75</b>），換算總分為兩者各半、<b style="color:#DC2626;">及格 ≥70</b>。未達標以紅字標示。');
+    html+=f360Block('F07M','360 度評估');
+    secs.push({id:'f360', title:'⑨ 360 度評估', html:html});
   })();
 
 
@@ -15128,12 +15126,10 @@ function cohortSections(students){
     // [formId, 顯示名稱, 重點欄位 key, 重點欄位標題]
     var rows=[
       ['F11','個人化學習計畫 ILPs','goal','學習目標'],
-      ['F04M','床邊教學（內科）','diagnosis','診斷'],
-      ['F04S','床邊教學（外科）','diagnosis','診斷'],
+      ['F04M','床邊教學','diagnosis','診斷'],
       ['F08','全人照護紀錄','diagnosis','診斷'],
       ['F09','跨領域團隊合作','diagnosis','診斷'],
-      ['F10A','輔導記錄表(1)','t_note','輔導重點'],
-      ['F10B','輔導記錄表(2)','t_note','輔導重點'],
+      ['F10A','輔導記錄表','t_note','輔導重點'],
       ['F12','學習心得與建議','env_review','心得摘要']
     ];
     function snip(t){ t=String(t||'').replace(/\s+/g,' ').trim(); if(!t) return ''; return t.length>22?_cohEsc(t.slice(0,22))+'…':_cohEsc(t); }
@@ -15164,10 +15160,10 @@ function cohortSections(students){
     var groups=[
       {label:'學習風格',ids:['F16']},
       {label:'筆試',ids:['F-PRE','F-POST']},
-      {label:'學習評估',ids:['F11','F01A','F01B','F02','F04M','F04S','F06M','F06S','F07M','F07S','F08','F09','F10A','F10B','F12']},
+      {label:'學習評估',ids:['F11','F01A','F01B','F02','F04M','F06M','F07M','F08','F09','F10A','F12']},
       {label:'個案報告',ids:['F13','F14']},
-      {label:'DOPS',ids:['D01','D02','D03','D04']},
-      {label:'課後測驗',ids:['F-CT01','F-CT02','F-CT03','F-CT04','F-CT05','F-CT06','F-CT07','F-CT08','F-CT09','F-CT10','F-CT11','F-CT12']},
+      {label:'DOPS',ids:['D01','D05','D02']},
+      {label:'課後測驗',ids:['F-CT01','F-CT02','F-CT03']},
       {label:'總評值',ids:['F15']}
     ];
     var html='';
