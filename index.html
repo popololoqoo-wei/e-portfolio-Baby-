@@ -1333,6 +1333,8 @@ APP.courseSpeakers=['陳正美','卓瓊美','黃培琦','傅偉菱'];
 // 班級統整 PDF 表頭「學期」(管理員手動填；留空則自動推算)。本機留底，伺服器有值時以伺服器為準。
 APP.cohortTerm='';
 try{ var _ctLS=localStorage.getItem('cohort_term'); if(_ctLS) APP.cohortTerm=_ctLS; }catch(e){}
+// 實習類別選項（後台新增學生／逐生編輯實習日期用）
+const INTERN_CATEGORIES=['基礎呼吸照護實習','重症呼吸照護實習','小兒呼吸照護實習','長期呼吸照護實習','綜合臨床實習'];
 
 /* ═══════════ HELPERS ═══════════ */
 
@@ -13215,6 +13217,13 @@ function renderAdmin(){
           <input id="ns-expiry" type="date" title="帳號到期日(預設新增日 +90 天)" style="max-width:140px;">
           <button class="btn-add" onclick="addStudent()">＋ 新增</button>
         </div>
+        <div class="admin-row" style="margin-top:6px;align-items:center;flex-wrap:wrap;gap:6px;">
+          <span style="font-size:11px;color:var(--ink3);white-space:nowrap;">實習資料(選填，會自動帶入學生表單)：</span>
+          <select id="ns-cat" style="max-width:180px;"><option value="">實習類別</option>${INTERN_CATEGORIES.map(function(c){return '<option value="'+esc(c)+'">'+esc(c)+'</option>';}).join('')}</select>
+          <input id="ns-start" type="date" title="實習起始日" style="max-width:150px;">
+          <span style="font-size:11px;color:var(--ink3);">～</span>
+          <input id="ns-end" type="date" title="實習結束日" style="max-width:150px;">
+        </div>
         <div style="font-size:11px;color:var(--ink3);margin-bottom:6px;">💡 拖曳左側 ⋮⋮ 圖示可排序　｜　黃色「自助註冊」標籤代表學生自行建立的帳號　｜　🛡 帳號到期日:不填則自動帶入 90 天後</div>
 
         <!-- ★ 批次操作工具列(可摺疊) -->
@@ -14097,10 +14106,32 @@ function exportBackup(){
   }
 }
 
+async function updateStudentIntern(sid){
+  var acc = APP.students[sid];
+  if(!acc) return;
+  var catEl   = document.getElementById('si-cat-'+sid);
+  var startEl = document.getElementById('si-start-'+sid);
+  var endEl   = document.getElementById('si-end-'+sid);
+  var cat   = catEl   ? (catEl.value||'')   : (acc.intern_cat||'');
+  var start = startEl ? (startEl.value||'') : (acc.intern_start||'');
+  var end   = endEl   ? (endEl.value||'')   : (acc.intern_end||'');
+  // 先更新本機快取(畫面即時反映)
+  acc.intern_cat=cat; acc.intern_start=start; acc.intern_end=end;
+  // 送後端(附帶現有 name/school，避免被清空)
+  var result = await callBackend('updateStudent', {sid:sid, name:acc.name, school:acc.school||'', intern_cat:cat, intern_start:start, intern_end:end});
+  if(!result || !result.ok){
+    toast('⚠ 實習資料已暫存本機，但後端未確認（可能需先更新後端欄位）', false);
+  }else{
+    toast('✓ 實習資料已更新（學生登入將自動帶入）');
+  }
+}
 async function addStudent(){
   const sid=clipInput((document.getElementById('ns-sid').value||'').trim(), MAX_SHORT_LENGTH);
   const name=clipInput((document.getElementById('ns-name').value||'').trim(), MAX_NAME_LENGTH);
   const school=clipInput((document.getElementById('ns-school').value||'').trim(), MAX_NAME_LENGTH);
+  const internCat=clipInput(((document.getElementById('ns-cat')||{}).value||'').trim(), MAX_NAME_LENGTH);
+  const internStart=((document.getElementById('ns-start')||{}).value||'').trim();
+  const internEnd=((document.getElementById('ns-end')||{}).value||'').trim();
   // ★ 防呆:讀取期限欄位,沒填則套用 90 天預設
   var expiryEl = document.getElementById('ns-expiry');
   var expiry = (expiryEl && expiryEl.value) ? expiryEl.value : computeDefaultExpiry(90);
@@ -14115,12 +14146,15 @@ async function addStudent(){
     return;
   }
   // 【資安修補 v18.1】呼叫後端 API（密碼會在後端雜湊化）
-  const result = await callBackend('addStudent', {sid, name, school, expiry, pwd:'123'});
+  const result = await callBackend('addStudent', {sid, name, school, expiry, pwd:'123', intern_cat:internCat, intern_start:internStart, intern_end:internEnd});
   if(!result.ok){ toast('⚠ '+(result.error||'新增失敗'),false); return; }
   // 後端成功 → 更新本地快取(同步保留 pwdPlain 讓表格 👁 圖示可顯示)
-  APP.students[sid]={name,school,pwd:'h2:(remote)',pwdPlain:'123',expiry,mustChangePwd:true};
+  APP.students[sid]={name,school,pwd:'h2:(remote)',pwdPlain:'123',expiry,mustChangePwd:true,intern_cat:internCat,intern_start:internStart,intern_end:internEnd};
   refreshStudentTable();
   document.getElementById('ns-sid').value='';document.getElementById('ns-name').value='';document.getElementById('ns-school').value='';
+  var _nc=document.getElementById('ns-cat'); if(_nc)_nc.value='';
+  var _nst=document.getElementById('ns-start'); if(_nst)_nst.value='';
+  var _nen=document.getElementById('ns-end'); if(_nen)_nen.value='';
   if(expiryEl) expiryEl.value='';
   toast('✓ 已新增學生（預設密碼:123 · 期限至 '+expiry+')');
 }
@@ -14307,7 +14341,7 @@ function refreshStudentTable(){
   const tbl=document.getElementById('student-table');if(!tbl)return;
   // 取得排序後的學號順序
   var orderedSids = getStudentOrder();
-  var rows = '<tr><th style="width:32px;text-align:center;"><input type="checkbox" id="batch-th-checkbox" onchange="batchToggleAll(this.checked)" style="cursor:pointer;width:14px;height:14px;" title="全選"></th><th style="width:32px;"></th><th>學號</th><th>姓名</th><th>學校</th><th>密碼</th><th>帳號期限</th><th>操作</th></tr>';
+  var rows = '<tr><th style="width:32px;text-align:center;"><input type="checkbox" id="batch-th-checkbox" onchange="batchToggleAll(this.checked)" style="cursor:pointer;width:14px;height:14px;" title="全選"></th><th style="width:32px;"></th><th>學號</th><th>姓名</th><th>學校</th><th style="min-width:200px;">實習資料</th><th>密碼</th><th>帳號期限</th><th>操作</th></tr>';
   orderedSids.forEach(function(sid){
     var acc = APP.students[sid]; if(!acc) return;
     var expired = acc.expiry && new Date(acc.expiry) < new Date();
@@ -14335,7 +14369,18 @@ function refreshStudentTable(){
       'ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" ondragend="dragEnd(event)" style="cursor:move;">'+
       '<td style="text-align:center;"><input type="checkbox" class="batch-row-checkbox" data-sid="'+escAttr(sid)+'" onchange="batchUpdateCount()" style="cursor:pointer;width:14px;height:14px;"></td>'+
       '<td style="text-align:center;color:var(--ink3);user-select:none;" title="拖曳排序">⋮⋮</td>'+
-      '<td>'+esc(sid)+'</td><td>'+esc(acc.name)+selfReg+'</td><td>'+esc(acc.school||'—')+'</td><td>'+pwdCell+'</td>'+
+      '<td>'+esc(sid)+'</td><td>'+esc(acc.name)+selfReg+'</td><td>'+esc(acc.school||'—')+'</td>'+
+      '<td style="min-width:210px;">'+
+        '<select id="si-cat-'+escAttr(sid)+'" onchange="updateStudentIntern(\''+escAttr(sid)+'\')" style="width:100%;padding:2px 4px;border:1px solid var(--border);border-radius:4px;font-size:10px;margin-bottom:3px;"><option value="">—實習類別—</option>'+
+          INTERN_CATEGORIES.map(function(c){return '<option value="'+escAttr(c)+'" '+(acc.intern_cat===c?'selected':'')+'>'+esc(c)+'</option>';}).join('')+
+        '</select>'+
+        '<div style="display:flex;gap:3px;align-items:center;">'+
+          '<input type="date" id="si-start-'+escAttr(sid)+'" value="'+escAttr(_normalizeDateStr(acc.intern_start))+'" title="實習起始日" onchange="updateStudentIntern(\''+escAttr(sid)+'\')" style="flex:1 1 0;min-width:0;padding:2px 3px;border:1px solid var(--border);border-radius:4px;font-size:10px;">'+
+          '<span style="font-size:9px;color:var(--ink3);">~</span>'+
+          '<input type="date" id="si-end-'+escAttr(sid)+'" value="'+escAttr(_normalizeDateStr(acc.intern_end))+'" title="實習結束日" onchange="updateStudentIntern(\''+escAttr(sid)+'\')" style="flex:1 1 0;min-width:0;padding:2px 3px;border:1px solid var(--border);border-radius:4px;font-size:10px;">'+
+        '</div>'+
+      '</td>'+
+      '<td>'+pwdCell+'</td>'+
       '<td style="'+expiryColor+'">'+
         '<input type="date" value="'+escAttr(_normalizeDateStr(acc.expiry))+'" style="padding:2px 6px;border:1px solid var(--border);border-radius:4px;font-size:11px;width:120px;" onchange="updateStudentExpiry(\''+escAttr(sid)+'\',this.value)">'+
         (expired?'<span style="color:var(--red);font-size:10px;display:block;">已失效</span>':'')+
