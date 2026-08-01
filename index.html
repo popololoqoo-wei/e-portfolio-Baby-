@@ -2581,6 +2581,255 @@ const COURSE_TEST_TOTAL_QUESTIONS = 10;
 const COURSE_TEST_IMG = {};
 
 /* 課後測驗：題庫總表（依表單 id 對應） */
+/* ═══════════════════════════════════════════════════════════════════
+   筆試考題「方向／範疇」分類 — 前測 + 後測共用（依 EXAM_QUESTIONS 原始索引 0–24（小兒版））
+   ───────────────────────────────────────────────────────────────────
+   用途：作答後依「臨床範疇」統計答對/答錯，讓學生與老師看出「錯在哪些方向」，
+        並對未達標的方向給出精進建議與院內核心課程複習資源。
+   ※ 若日後新增/調整題目，只需同步維護 EXAM_QUESTION_CATEGORY（長度需等於題數）。
+   ═══════════════════════════════════════════════════════════════════ */
+const EXAM_CATEGORIES = [
+  { key:'NEO_RESUS', name:'新生兒復甦與人工氣道',
+    advice:'熟記出生 30 秒內的三項快速評估（足月與否、肌肉張力、呼吸/哭聲），以及低體重早產兒插管要點：新生兒氣管內管原則上不帶 cuff、依體重選內徑（1200g 約 3.0 mm）、確認位置以心跳與膚色改善為主，聽診困難時用 end-tidal CO2 偵測器輔助。',
+    course:'課後測驗(2) 新生兒呼吸器初始設定' },
+  { key:'RDS_SURF', name:'呼吸窘迫症候群與表面張力素',
+    advice:'掌握 RDS 的典型病程與惡化時的鑑別診斷（拔管後再惡化要優先想到開放性動脈導管 PDA），並分清天然型表面張力素（beractant、calfactant、poractant alfa）與合成型（lucinactant）的差異。',
+    course:'課後測驗(2) 新生兒呼吸器初始設定' },
+  { key:'NIV_CPAP', name:'非侵襲性通氣與氧氣治療（CPAP／Bubble CPAP／氧氣裝置）',
+    advice:'複習 nCPAP 的適應症與禁忌（無法自主呼吸者不適用）、初始壓力 5～6 cmH2O 與上限 8 cmH2O、Bubble 式相對於連續氣流式的優勢，以及早產兒目標血氧範圍與 oxygen hood 需 7～10 L/min 以上才能維持穩定 FiO2。',
+    course:'課後測驗(3) NIV（含 Bubble CPAP、HFNC）' },
+  { key:'MV_HFOV', name:'小兒／新生兒機械通氣與高頻通氣',
+    advice:'強化肺保護通氣觀念（driving pressure 不宜大於 15 cmH2O）、容積保證模式的運作邏輯（以近 8 次吐氣潮氣容積平均值回饋調整壓力），以及高頻通氣的頻率單位、適應時機、機種適用體重與併發症（濕度不足易致壞死性氣管支氣管炎）。',
+    course:'課後測驗(2) 新生兒呼吸器初始設定' },
+  { key:'ASTHMA_AIRWAY', name:'小兒氣喘與慢性呼吸道疾病',
+    advice:'區辨氣喘的典型表現（反覆喘鳴、無感染的夜咳、運動誘發咳嗽）與非典型的持續有痰咳嗽，並熟悉 FeNO 在不同年齡層的判讀切點與臨床意義。',
+    course:'課後測驗(1) 小兒常見呼吸道疾病之處置' },
+  { key:'PULM_HTN_BPD', name:'肺高壓、BPD 與肺循環',
+    advice:'整理小兒肺高壓的常見成因（先天性心臟病、BPD、先天性橫膈膜疝氣）與少見成因，並比較各類肺高壓用藥的作用機轉與適用族群，特別是鈣離子通道阻斷劑在嬰幼兒的限制。',
+    course:'課後測驗(1) 小兒常見呼吸道疾病之處置' },
+  { key:'DEV_FETAL', name:'肺臟發育與胎兒循環生理',
+    advice:'背熟肺發育五期順序（胚胎期→偽腺體期→小管期→囊泡期→肺泡期）與各期特徵、胎兒循環的特有構造（卵圓孔、動脈導管），以及 HbF 因 P50 較低而對氧親合力較高、胎兒以較高血紅素濃度維持氧輸送的機轉。',
+    course:'此方向屬基礎生理，建議搭配實習前自習教材與臨床帶教複習' },
+  { key:'AIRWAY_CLEAR', name:'氣道清除技術與神經肌肉疾病照護',
+    advice:'依病人配合度與上呼吸道穩定度挑選合適的氣道清除技術（無法深呼吸、易上呼吸道閉合者不適用需主動配合的 autogenic drainage、ACBT），並熟練執行中血氧下降的處理順序：先停止治療、恢復姿勢並給氧，再評估與通報。',
+    course:'課後測驗(1) 小兒常見呼吸道疾病之處置' },
+  { key:'NEO_COMMON', name:'新生兒常見疾病與照護風險',
+    advice:'掌握胎便吸入症候群的診斷要點（胎便染色、X 光氣體分布不均與 air-trapping、臨床嚴重度差異大）與嬰兒猝死症的可調控風險因子（趴睡、二手菸、環境過熱）。',
+    course:'課後測驗(1) 小兒常見呼吸道疾病之處置' }
+];
+/* 每題（原始索引 0–24，對應 EXAM_QUESTIONS）所屬範疇 key */
+const EXAM_QUESTION_CATEGORY = [
+  'NIV_CPAP','ASTHMA_AIRWAY','ASTHMA_AIRWAY','NIV_CPAP','NEO_COMMON',
+  'MV_HFOV','PULM_HTN_BPD','PULM_HTN_BPD','NEO_RESUS','RDS_SURF',
+  'MV_HFOV','MV_HFOV','NIV_CPAP','MV_HFOV','MV_HFOV',
+  'NIV_CPAP','NEO_RESUS','AIRWAY_CLEAR','AIRWAY_CLEAR','DEV_FETAL',
+  'DEV_FETAL','DEV_FETAL','DEV_FETAL','RDS_SURF','NEO_COMMON'
+];
+
+/* ─── 依範疇統計答對/答錯 ───
+   參數：
+     order       : 該卷題序（display index → original index）
+     wrongSet    : { 畫面題號(1-based): true } 答錯的題（未作答可不在內，由 isAnsweredFn 判定）
+     isAnsweredFn: function(畫面題號) → 是否已作答（未作答視為錯）
+   回傳：依正確率由低到高排序的陣列（只含有出現在本卷的範疇）
+         [{key,name,advice,course,total,correct,wrong,unanswered,rate}] */
+function _examCategoryRows(order, wrongSet, isAnsweredFn){
+  if(!Array.isArray(order) || typeof EXAM_CATEGORIES==='undefined') return [];
+  var stat = {};
+  EXAM_CATEGORIES.forEach(function(c){ stat[c.key]={total:0,correct:0,wrong:0,unanswered:0}; });
+  for(var disp=0; disp<order.length; disp++){
+    var origIdx = order[disp];
+    var catKey  = EXAM_QUESTION_CATEGORY[origIdx];
+    var s = stat[catKey];
+    if(!s) continue;
+    var qNum = disp+1;
+    s.total++;
+    var answered = isAnsweredFn ? !!isAnsweredFn(qNum) : true;
+    if(!answered){ s.unanswered++; s.wrong++; }
+    else if(wrongSet && wrongSet[qNum]){ s.wrong++; }
+    else { s.correct++; }
+  }
+  var rows = EXAM_CATEGORIES.map(function(c){
+    var s = stat[c.key];
+    var rate = s.total>0 ? Math.round(s.correct/s.total*100) : 0;
+    return { key:c.key, name:c.name, advice:c.advice, course:c.course,
+             total:s.total, correct:s.correct, wrong:s.wrong,
+             unanswered:s.unanswered, rate:rate };
+  }).filter(function(r){ return r.total>0; });
+  // 正確率低者排前（最該加強）；同分時錯題多者在前
+  rows.sort(function(a,b){ return (a.rate-b.rate) || (b.wrong-a.wrong); });
+  return rows;
+}
+
+/* ─── 線上畫面版（card 風格）：錯題方向分析 ─── */
+function renderExamAnalysisCard(rows, mode){
+  if(!rows || !rows.length) return '';
+  var intro = (mode==='pre')
+    ? '依正確率由低到高排序，越前面越建議「優先複習」。前測不揭露正確答案，但仍能先看出弱點方向，作為實習期間的學習地圖。'
+    : '綠色＝已掌握、橘色＝待補強、紅色＝需加強。請對照各範疇下方的「建議複習課程」精進，再與前測比較進步幅度。';
+  var h = '<div class="card" style="border:2px solid #2563EB;">';
+  h += '<div class="card-head" style="background:#2563EB;color:#fff;"><div class="card-head-title">🎯 錯題方向分析（學習弱點地圖）</div></div>';
+  h += '<div class="card-body">';
+  h += '<div style="font-size:12px;color:var(--ink3);margin-bottom:12px;line-height:1.6;">'+intro+'</div>';
+  rows.forEach(function(r){
+    var color = r.rate>=80?'#10B981':(r.rate>=50?'#F59E0B':'#EF4444');
+    var tag   = r.rate>=80?'已掌握':(r.rate>=50?'待補強':'需加強');
+    var barW  = Math.max(4, r.rate);
+    h += '<div style="margin-bottom:12px;">';
+    h += '<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:4px;gap:8px;">';
+    h += '<span style="font-weight:600;color:#1E293B;">'+r.name+'</span>';
+    h += '<span style="font-weight:700;color:'+color+';white-space:nowrap;">'+tag+'　'+r.correct+'/'+r.total+'（'+r.rate+'%）</span>';
+    h += '</div>';
+    h += '<div style="background:#E5E7EB;border-radius:6px;height:12px;overflow:hidden;"><div style="background:'+color+';height:12px;width:'+barW+'%;transition:width .5s;"></div></div>';
+    h += '</div>';
+  });
+  var focus = rows.filter(function(r){ return r.rate<80; });
+  if(focus.length){
+    h += '<div style="margin-top:8px;border:1px solid #FCD34D;border-radius:8px;overflow:hidden;">';
+    h += '<div style="background:#F59E0B;color:#fff;padding:8px 12px;font-weight:700;font-size:13px;">📌 精進方向與建議複習資源</div>';
+    focus.forEach(function(r){
+      h += '<div style="padding:10px 12px;border-bottom:1px dashed #FDE68A;background:#FFFEF8;">';
+      h += '<div style="font-weight:700;color:#92400E;font-size:13px;">● '+r.name+'（答對 '+r.correct+'/'+r.total+'）</div>';
+      h += '<div style="font-size:12px;color:#374151;line-height:1.6;margin-top:3px;">'+r.advice+'</div>';
+      h += '<div style="font-size:12px;color:#1E40AF;margin-top:3px;">📚 建議複習：'+r.course+'</div>';
+      h += '</div>';
+    });
+    h += '</div>';
+  } else {
+    h += '<div style="margin-top:8px;padding:10px 12px;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:8px;color:#065F46;font-weight:700;font-size:13px;">👏 各範疇正確率皆 ≥ 80%，掌握良好，請繼續保持！</div>';
+  }
+  h += '</div></div>';
+  return h;
+}
+
+/* ─── PDF 報表版（section-head + table 風格）：錯題方向分析 ─── */
+function renderExamAnalysisPDF(rows, mode){
+  if(!rows || !rows.length) return '';
+  var html = '<div class="section-head">錯題方向分析（學習弱點地圖）</div>';
+  html += '<div style="font-size:9pt;color:#475569;background:#F1F5F9;border-left:3px solid #2563EB;padding:6px 10px;margin:6px 0;">';
+  html += (mode==='pre'
+    ? '依正確率由低至高排序，越前面越建議優先複習；前測不揭露正確答案，僅呈現弱點方向作為學習地圖。'
+    : '綠色＝已掌握、橘色＝待補強、紅色＝需加強，並對照下方建議複習課程精進。');
+  html += '</div>';
+  html += '<table style="font-size:10pt;width:100%;">';
+  rows.forEach(function(r){
+    var color = r.rate>=80?'#10B981':(r.rate>=50?'#F59E0B':'#EF4444');
+    var bg    = r.rate>=80?'#ECFDF5':(r.rate>=50?'#FFFBEB':'#FEF2F2');
+    var tag   = r.rate>=80?'已掌握':(r.rate>=50?'待補強':'需加強');
+    var barW  = Math.max(4, r.rate);
+    html += '<tr style="background:'+bg+';">';
+    html += '<td style="padding:7px 10px;border:1px solid #E2E8F0;width:36%;font-weight:600;color:#1E293B;vertical-align:middle;">'+r.name+'</td>';
+    html += '<td style="padding:7px 10px;border:1px solid #E2E8F0;vertical-align:middle;">';
+    html += '<div style="background:#E5E7EB;border-radius:5px;height:13px;width:100%;overflow:hidden;"><div style="background:'+color+';height:13px;width:'+barW+'%;"></div></div>';
+    html += '<div style="margin-top:3px;font-size:9pt;color:#475569;">答對 '+r.correct+' / '+r.total+' 題　正確率 '+r.rate+'%</div>';
+    html += '</td>';
+    html += '<td style="padding:7px 10px;border:1px solid #E2E8F0;text-align:center;width:13%;font-weight:700;color:'+color+';">'+tag+'</td>';
+    html += '</tr>';
+  });
+  html += '</table>';
+  var focus = rows.filter(function(r){ return r.rate<80; });
+  if(focus.length){
+    html += '<div style="margin-top:10px;border:1px solid #FCD34D;border-radius:6px;overflow:hidden;page-break-inside:avoid;">';
+    html += '<div style="background:#F59E0B;color:#fff;padding:6px 10px;font-weight:700;font-size:10.5pt;">精進方向與建議複習資源</div>';
+    focus.forEach(function(r){
+      html += '<div style="padding:8px 12px;border-bottom:1px dashed #FDE68A;background:#FFFEF8;">';
+      html += '<div style="font-weight:700;color:#92400E;font-size:10pt;">● '+r.name+'（答對 '+r.correct+'/'+r.total+'）</div>';
+      html += '<div style="font-size:9.5pt;color:#374151;line-height:1.6;margin-top:2px;">'+r.advice+'</div>';
+      html += '<div style="font-size:9pt;color:#1E40AF;margin-top:2px;">建議複習：'+r.course+'</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  } else {
+    html += '<div style="margin-top:10px;padding:8px 12px;border:1px solid #10B981;border-radius:6px;background:#ECFDF5;color:#065F46;font-weight:700;font-size:10pt;">各範疇正確率皆 ≥ 80%，掌握良好。</div>';
+  }
+  return html;
+}
+
+/* ─── 從「已儲存的表單資料物件」還原方向統計（給前後測對照、班級彙整用） ───
+   d 需為某份 F-PRE / F-POST 的 formData；未送出回傳 null。 */
+function _examRowsFromFormData(d){
+  if(!d || !(d.submitted==='true' || d.submitted===true)) return null;
+  var n = (typeof EXAM_QUESTIONS!=='undefined') ? EXAM_QUESTIONS.length : 25;
+  var order=[];
+  var raw=d.order;
+  if(typeof raw==='string' && raw){ try{ raw=JSON.parse(raw); }catch(e){ raw=null; } }
+  if(Array.isArray(raw) && raw.length===n){
+    var seen={}, ok=true;
+    for(var i=0;i<raw.length;i++){ var v=raw[i]; if(typeof v!=='number'||v<0||v>=n||seen[v]){ ok=false; break; } seen[v]=true; }
+    if(ok) order=raw.slice();
+  }
+  if(!order.length){ for(var j=0;j<n;j++) order.push(j); }
+  var wrongSet={};
+  var w=d.wrong_list;
+  if(typeof w==='string' && w){ try{ w=JSON.parse(w); }catch(e){ w=[]; } }
+  if(Array.isArray(w)) w.forEach(function(x){ wrongSet[x]=true; });
+  return _examCategoryRows(order, wrongSet, function(q){ return !!(d['q'+q]||''); });
+}
+
+/* ─── 線上畫面版：前測 → 後測「各方向進步對照」卡 ─── */
+function renderExamCompareCard(preRows, postRows){
+  if(!postRows || !postRows.length || typeof EXAM_CATEGORIES==='undefined') return '';
+  var preMap={}; (preRows||[]).forEach(function(r){ preMap[r.key]=r; });
+  var postMap={}; postRows.forEach(function(r){ postMap[r.key]=r; });
+  var h='<div class="card" style="border:2px solid #7C3AED;">';
+  h+='<div class="card-head" style="background:#7C3AED;color:#fff;"><div class="card-head-title">📈 前測 → 後測 進步對照（各方向）</div></div>';
+  h+='<div class="card-body">';
+  h+='<div style="font-size:12px;color:var(--ink3);margin-bottom:12px;line-height:1.6;">同一臨床方向在前測與後測的正確率變化。綠色▲代表進步、紅色▼代表退步，可驗證這段實習在哪些方向真正精進了。淺紫＝前測、彩色＝後測。</div>';
+  EXAM_CATEGORIES.forEach(function(c){
+    var po=postMap[c.key]; if(!po) return;
+    var pr=preMap[c.key]||null;
+    var preRate = pr?pr.rate:null;
+    var postRate = po.rate;
+    var diff = (preRate!=null)?(postRate-preRate):null;
+    var dCol = diff==null?'#94a3b8':(diff>0?'#059669':diff<0?'#DC2626':'#64748b');
+    var dTxt = diff==null?'（前測未作答）':(diff>0?'▲ +'+diff+'%':diff<0?'▼ '+diff+'%':'持平');
+    var postCol = postRate>=80?'#10B981':(postRate>=50?'#F59E0B':'#EF4444');
+    h+='<div style="margin-bottom:12px;">';
+    h+='<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;gap:8px;">';
+    h+='<span style="font-weight:600;color:#1E293B;">'+c.name+'</span>';
+    h+='<span style="font-weight:700;color:'+dCol+';white-space:nowrap;">'+(preRate!=null?preRate+'%':'—')+' → '+postRate+'%　'+dTxt+'</span>';
+    h+='</div>';
+    h+='<div style="position:relative;background:#E5E7EB;border-radius:6px;height:14px;overflow:hidden;">';
+    if(preRate!=null){ h+='<div style="position:absolute;top:0;left:0;height:14px;width:'+Math.max(2,preRate)+'%;background:#C7D2FE;"></div>'; }
+    h+='<div style="position:absolute;top:0;left:0;height:14px;width:'+Math.max(2,postRate)+'%;background:'+postCol+';opacity:.85;"></div>';
+    h+='</div>';
+    h+='</div>';
+  });
+  h+='</div></div>';
+  return h;
+}
+
+/* ─── PDF 報表版：前測 → 後測「各方向進步對照」表 ─── */
+function renderExamComparePDF(preRows, postRows){
+  if(!postRows || !postRows.length || !preRows || !preRows.length || typeof EXAM_CATEGORIES==='undefined') return '';
+  var preMap={}; preRows.forEach(function(r){ preMap[r.key]=r; });
+  var postMap={}; postRows.forEach(function(r){ postMap[r.key]=r; });
+  var html='<div class="section-head">前測 → 後測 進步對照（各方向）</div>';
+  html+='<div style="font-size:9pt;color:#475569;background:#F5F3FF;border-left:3px solid #7C3AED;padding:6px 10px;margin:6px 0;">同一臨床方向前測與後測正確率變化，用以驗證本次實習在各方向的精進幅度。</div>';
+  html+='<table style="font-size:10pt;width:100%;"><tr>'
+      +'<th style="background:#7C3AED;color:#fff;padding:5px 8px;border:1px solid #DDD;text-align:left;width:40%;">臨床方向</th>'
+      +'<th style="background:#7C3AED;color:#fff;padding:5px 8px;border:1px solid #DDD;text-align:center;">前測正確率</th>'
+      +'<th style="background:#7C3AED;color:#fff;padding:5px 8px;border:1px solid #DDD;text-align:center;">後測正確率</th>'
+      +'<th style="background:#7C3AED;color:#fff;padding:5px 8px;border:1px solid #DDD;text-align:center;">進步</th></tr>';
+  EXAM_CATEGORIES.forEach(function(c){
+    var po=postMap[c.key]; if(!po) return;
+    var pr=preMap[c.key]||null;
+    var preRate=pr?pr.rate:null, postRate=po.rate;
+    var diff=(preRate!=null)?(postRate-preRate):null;
+    var dCol=diff==null?'#64748b':(diff>0?'#059669':diff<0?'#DC2626':'#64748b');
+    var dTxt=diff==null?'—':(diff>0?'▲ +'+diff+'%':diff<0?'▼ '+diff+'%':'持平');
+    var postCol=postRate>=80?'#059669':(postRate>=50?'#D97706':'#DC2626');
+    html+='<tr>'
+      +'<td style="padding:6px 8px;border:1px solid #DDD;font-weight:600;">'+escapeExamHtml(c.name)+'</td>'
+      +'<td style="padding:6px 8px;border:1px solid #DDD;text-align:center;">'+(preRate!=null?preRate+'%':'—')+'</td>'
+      +'<td style="padding:6px 8px;border:1px solid #DDD;text-align:center;font-weight:700;color:'+postCol+';">'+postRate+'%</td>'
+      +'<td style="padding:6px 8px;border:1px solid #DDD;text-align:center;font-weight:700;color:'+dCol+';">'+dTxt+'</td>'
+      +'</tr>';
+  });
+  html+='</table>';
+  return html;
+}
+
 const COURSE_TEST_BANK = {
   /* ─── F-CT01：小兒常見呼吸道疾病之處置 ─── */
   'F-CT01': {
@@ -8612,6 +8861,20 @@ function buildPDFContent(id,f,d,val,row,section,studentName,studentSchool,chk){
     }
     html+='</table>';
 
+    // ── 錯題方向分析（前測/後測共用，已送出才顯示） ──
+    if(submitted){
+      var __catRows = _examCategoryRows(pdfOrder, pdfWrongSet, function(qNum){ return !!String(d['q'+qNum]||''); });
+      html += renderExamAnalysisPDF(__catRows, examMode);
+      // 後測：附前測→後測進步對照（若能取得已送出的前測資料）
+      if(examMode==='post'){
+        try{
+          var __preD = (typeof getFormKey==='function') ? (APP.formData[getFormKey('F-PRE')]||null) : null;
+          var __preRows = __preD ? _examRowsFromFormData(__preD) : null;
+          if(__preRows && __preRows.length){ html += renderExamComparePDF(__preRows, __catRows); }
+        }catch(e){}
+      }
+    }
+
     // ── 前測限定：錯題清單（不揭露正解） ──
     if(submitted && examMode==='pre'){
       html+='<div class="section-head">答錯（或未作答）的題號</div>';
@@ -12723,6 +12986,20 @@ function _buildExamCommon(f, d, fid, mode){
       '</div></div>';
   }
 
+  // 錯題方向分析（已送出才顯示，前測/後測共用，學生與老師皆可見）
+  if(submitted && res){
+    var _catRows = _examCategoryRows(order, wrongSet, function(qNum){ return !!(d['q'+qNum]||''); });
+    h += renderExamAnalysisCard(_catRows, mode);
+    // 後測：附上「前測→後測 各方向進步對照」（若能取得已送出的前測資料）
+    if(mode==='post'){
+      try{
+        var _preD = (typeof getFormKey==='function') ? (APP.formData[getFormKey('F-PRE')]||null) : null;
+        var _preRows = _preD ? _examRowsFromFormData(_preD) : null;
+        if(_preRows && _preRows.length){ h += renderExamCompareCard(_preRows, _catRows); }
+      }catch(e){}
+    }
+  }
+
   // 題目區
   h += '<div class="card"><div class="card-head"><div class="card-head-title">考題作答（共 '+EXAM_QUESTIONS.length+' 題，每題 '+EXAM_PER_QUESTION_SCORE+' 分）'+
     (mode==='post' ? '<span style="font-size:11px;font-weight:400;color:#fbbf24;margin-left:8px;">📋 題目已隨機排序</span>' : '')+
@@ -15278,6 +15555,69 @@ function cohortSections(students){
     body+='<tr style="background:#F1F5FB;">'+_cohTd('<b>全班平均</b>')+_cohTd(avgPre==null?'—':avgPre,'text-align:center;font-weight:700;')+_cohTd(avgPost==null?'—':avgPost,'text-align:center;font-weight:700;')+_cohTd((avgPre!=null&&avgPost!=null)?((avgPost-avgPre>=0?'+':'')+(avgPost-avgPre)):'—','text-align:center;font-weight:700;')+'</tr>';
     html+=_cohTbl(head,body);
     secs.push({id:'exam', title:'③ 筆試前／後測成績分布', html:html});
+  })();
+
+
+  /* 3-2) 全班錯題方向彙整（弱點教學地圖） */
+  (function(){
+    if(typeof EXAM_CATEGORIES==='undefined' || typeof _examRowsFromFormData!=='function') return;
+    var agg={};
+    EXAM_CATEGORIES.forEach(function(c){ agg[c.key]={name:c.name,advice:c.advice,course:c.course,preC:0,preT:0,postC:0,postT:0}; });
+    var preStu=0, postStu=0;
+    students.forEach(function(s){
+      var pr=_examRowsFromFormData(cohortForm('F-PRE',s.sid));
+      var po=_examRowsFromFormData(cohortForm('F-POST',s.sid));
+      if(pr){ preStu++;  pr.forEach(function(r){ if(agg[r.key]){ agg[r.key].preC+=r.correct;  agg[r.key].preT+=r.total;  } }); }
+      if(po){ postStu++; po.forEach(function(r){ if(agg[r.key]){ agg[r.key].postC+=r.correct; agg[r.key].postT+=r.total; } }); }
+    });
+    if(preStu===0 && postStu===0) return; // 全班都還沒作答就不顯示
+    var cats=EXAM_CATEGORIES.map(function(c){
+      var a=agg[c.key];
+      var preRate  = a.preT>0  ? Math.round(a.preC/a.preT*100)   : null;
+      var postRate = a.postT>0 ? Math.round(a.postC/a.postT*100) : null;
+      return { key:c.key, name:c.name, advice:c.advice, course:c.course,
+               preRate:preRate, postRate:postRate,
+               primary:(postRate!=null?postRate:(preRate!=null?preRate:0)) };
+    });
+    var useLabel = postStu>0 ? '後測' : '前測';
+    var doneN = postStu>0 ? postStu : preStu;
+    var sorted = cats.slice().sort(function(a,b){ return a.primary-b.primary; }); // 弱點在前
+    var labels = sorted.map(function(c){ return c.name; });
+    var vals   = sorted.map(function(c){ return c.primary; });
+    var html='';
+    html+=_cohNote('把 25 題依臨床範疇分成 9 大方向，統計<b>全班</b>各方向的正確率（'+useLabel+'，已完成 '+doneN+' 人）。長條由低到高排序，越上面代表<b>全班共同越弱</b>、最該加強的教學方向；紅線為 80% 掌握門檻。');
+    html+=_cohChartBox(cohortHBarSVG(labels, vals, {max:100, threshold:80, thresholdLabel:'掌握門檻 80', labelW:210, rowH:16}));
+    var head='<tr>'+_cohTh('臨床方向')+_cohTh('前測班正確率')+_cohTh('後測班正確率')+_cohTh('進步')+_cohTh('掌握度')+'</tr>';
+    var body='';
+    sorted.forEach(function(c){
+      function rc(v){ if(v==null) return _cohTd('<span style="color:#bbb;">—</span>','text-align:center;'); var col=v>=80?'#059669':(v>=50?'#D97706':'#DC2626'); return _cohTd(v+'%','text-align:center;font-weight:700;color:'+col+';'); }
+      var diff=(c.preRate!=null&&c.postRate!=null)?(c.postRate-c.preRate):null;
+      var diffTxt=diff==null?'—':(diff>0?'▲ +'+diff+'%':diff<0?'▼ '+diff+'%':'持平');
+      var diffCol=diff==null?'#94a3b8':(diff>0?'#059669':diff<0?'#DC2626':'#64748b');
+      var base=(c.postRate!=null?c.postRate:c.preRate);
+      var tag=base==null?'—':(base>=80?'已掌握':base>=50?'待補強':'需加強');
+      var tagCol=base==null?'#94a3b8':(base>=80?'#059669':base>=50?'#D97706':'#DC2626');
+      body+='<tr>'+_cohTd('<b>'+_cohEsc(c.name)+'</b>','background:#FAFBFF;')+rc(c.preRate)+rc(c.postRate)+_cohTd(diffTxt,'text-align:center;font-weight:600;color:'+diffCol+';')+_cohTd(tag,'text-align:center;font-weight:700;color:'+tagCol+';')+'</tr>';
+    });
+    html+=_cohTbl(head,body);
+    var weak=sorted.filter(function(c){ var base=(c.postRate!=null?c.postRate:c.preRate); return base!=null && base<80; });
+    if(weak.length){
+      var adv='<div style="margin-top:10px;border:1px solid #FCD34D;border-radius:8px;overflow:hidden;">';
+      adv+='<div style="background:#F59E0B;color:#fff;padding:8px 12px;font-weight:700;font-size:13px;">📌 全班共同弱點與教學精進建議</div>';
+      weak.forEach(function(c){
+        var base=(c.postRate!=null?c.postRate:c.preRate);
+        adv+='<div style="padding:10px 12px;border-bottom:1px dashed #FDE68A;background:#FFFEF8;">';
+        adv+='<div style="font-weight:700;color:#92400E;font-size:13px;">● '+_cohEsc(c.name)+'（全班'+useLabel+'正確率 '+base+'%）</div>';
+        adv+='<div style="font-size:12px;color:#374151;line-height:1.6;margin-top:3px;">'+_cohEsc(c.advice)+'</div>';
+        adv+='<div style="font-size:12px;color:var(--primary2);margin-top:3px;">📚 建議加強教學／指定複習：'+_cohEsc(c.course)+'</div>';
+        adv+='</div>';
+      });
+      adv+='</div>';
+      html+=adv;
+    } else {
+      html+='<div style="margin-top:10px;padding:10px 12px;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:8px;color:#065F46;font-weight:700;font-size:13px;">👏 全班各方向正確率皆 ≥ 80%，整體掌握良好。</div>';
+    }
+    secs.push({id:'examdir', title:'③ 全班錯題方向彙整（弱點教學地圖）', html:html});
   })();
 
   /* 4) 核心課程各堂平均 */
