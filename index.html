@@ -6,7 +6,35 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="2026-05-09-v18-security-hardened">
+<meta name="version" content="2026-08-19-v19.5-delete-fix">
+<!-- ═══════════════ v19.5 修補（前端）═══════════════
+  ★ FIX【清空的欄位刪不掉】F13 書面個案報告評分表、F14 個案報告 PPT 評分表，
+     以及所有文字框／文字區塊，刪掉內容後切換表單再回來，舊值會復活。
+     根因：saveDraftField 把清空寫成 ''，但沒有登記「刪除墩碑」；
+     而 saveFormToSheets 的合併策略是「雲端為底、本次非空值才覆蓋」，
+     '' 永遠覆蓋不掉雲端舊值，且合併結果會回寫記憶體 → 舊值當場復活。
+     修法：saveDraftField 清空時改為 delete + markFieldDeleted()，重新填值時
+     unmarkFieldDeleted()；openForm / saveForm 的「非空值補位」合併後
+     一律再套用一次墩碑清單。
+  ★ 墩碑在雲端回報寫入成功後即撤銷（原本固定活 24 小時），
+     避免它誤刪別台裝置後來填回的值。
+  ★ 老師端「學生欄位」由原本的「點擊跳確認框」升級為「唯讀」：
+     文字類用 readonly（可讀可選取可捲動）、選項類用 disabled、
+     學生評分按鈕不可點。管理員不受影響，維持完整編輯權限。
+────────────────────────────────────────────────── -->
+<!-- ═══════════════ v19.4 修補摘要（前端）═══════════════
+  ★ FIX 1【致命】自助註冊後呼叫不存在的 setSessionToken() → 改為 saveSession()
+  ★ FIX 2【致命】改學號後 Forms 的 formId 尾綴沒跟著改 → GAS v19.4 會一併搬移，
+        前端顯示搬移筆數；後端版本太舊時會出現警告。
+  ★ FIX 3【學期同步】
+        · loadAccounts 回傳的 studentTerms / studentTermsAt / defaultNewTerm 現在真的會被採用
+        · 學期改走專屬 setStudentTerm 批次 API（後端權威 + 伺服器蓋時間戳）
+        · saveConfig 不再挾帶學期對照表（杜絕舊分頁把舊學期推回雲端）
+        · applyConfig 對學期改為純補位，永不覆蓋、永不清除
+        · 後台新增「☁ 將本機學期一次同步到雲端」按鈕（升級後按一次）
+  ⚠ 本版需搭配 GAS v19.4（setStudentTerm / setCohortTerm 兩支 action）；
+     後端未更新時會自動退回相容模式，功能不中斷。
+────────────────────────────────────────────────── -->
 <!-- ═══════════════ CONTENT SECURITY POLICY ═══════════════
      防止 XSS 攻擊。允許清單僅包含本系統實際依賴的網域：
      - Google Fonts (CSS + 字型檔)
@@ -1439,10 +1467,21 @@ function isTermAutoDerived(sid){
 function setStudentTermLocal(sid, term){
   term=String(term==null?'':term).trim();
   if(!APP.studentTerms) APP.studentTerms={};
-  if(term){ APP.studentTerms[sid]=term; }
-  else { delete APP.studentTerms[sid]; }
+  // ★ FIX v1.6.1：清除時保留「空字串墓碑」而非 delete。
+  //   這樣「清除學期→改回自動推算」才能同步到其他裝置；
+  //   同時讓 applyConfig 能用逐筆合併（不再整包覆蓋）而不會漏掉清除動作。
+  APP.studentTerms[sid]=term;
   if(APP.students&&APP.students[sid]) APP.students[sid].term=term;
   _saveStudentTermsLocal();
+}
+
+/* ★ FIX v1.6.1：取得「人工指定」的學期（沒指定回傳空字串，不做自動推算）。
+   送後端 updateStudent 時使用，確保任何一次帳號編輯都不會把 term 欄洗掉。 */
+function _currentTermForSave(sid){
+  if(APP.studentTerms && Object.prototype.hasOwnProperty.call(APP.studentTerms, sid)){
+    return String(APP.studentTerms[sid]||'');
+  }
+  return String(((APP.students&&APP.students[sid])||{}).term||'');
 }
 
 /* 學期排序鍵：學年度數字 ×10 + 學期序，數字越大＝越新。未分類永遠排最後 */
@@ -1504,20 +1543,80 @@ function termDatalistHtml(id){
   }).join('')+'</datalist>';
 }
 
-/* 帳號清單重新載入後，把本機留底的學期回貼；同時把後端帶回的 term 收進本機 map */
-function reconcileStudentTerms(){
+/* ★ FIX v19.4【學期同步】收下 loadAccounts 回傳的學期資料 —— 後端為權威來源。
+   ── 為什麼要改成後端權威？────────────────────────────────────────────
+   舊版 reconcileStudentTerms 是「本機無條件贏」，再加上 saveConfigToSheets
+   會帶著本機的 Date.now() 新時間戳把整包舊 map 推回雲端。結果只要有一台
+   開很久沒重整的後台分頁按下任何按鈕（新增主題／講師／拖曳排序…），
+   它記憶體裡的舊學期就會蓋掉雲端剛改好的新學期 → 「學期跳回舊學年度」。
+   v19.3 後端已把 term 寫進 Students 分頁（權威欄位），前端改成以它為準。
+
+   採用規則（保守，不會誤刪未同步的本機指定）：
+     1. Students.term 有值            → 一律以後端為準
+     2. 後端 Config 對照表有 '' 墓碑  → 代表管理員在別台明確清除，照做
+     3. 其餘（後端完全沒提到這個 sid）→ 保留本機值，等下次編輯時回寫
+   ─────────────────────────────────────────────────────────────────── */
+function adoptServerTerms(data){
+  if(!APP.students) return;
+  if(!APP.studentTerms) APP.studentTerms={};
+  var srvMap=(data && data.studentTerms && typeof data.studentTerms==='object') ? data.studentTerms : null;
+  var srvAt =+((data && data.studentTermsAt) || 0);
+  var adopted=0, cleared=0;
+
+  // (1) Students 分頁的 term 欄 —— setStudentTerm / updateStudent 直接寫入，最權威
+  Object.keys(APP.students).forEach(function(sid){
+    var remote=String((APP.students[sid]||{}).term||'').trim();
+    if(remote && APP.studentTerms[sid]!==remote){ APP.studentTerms[sid]=remote; adopted++; }
+    else if(remote) APP.studentTerms[sid]=remote;
+  });
+
+  // (2) Config 對照表（含 '' 清除墓碑）—— 雙保險，涵蓋 term 欄還沒補齊的舊資料
+  if(srvMap){
+    Object.keys(srvMap).forEach(function(sid){
+      var sv=String(srvMap[sid]==null?'':srvMap[sid]).trim();
+      if(sv){
+        if(APP.studentTerms[sid]!==sv){ APP.studentTerms[sid]=sv; adopted++; }
+        if(APP.students[sid]) APP.students[sid].term=sv;
+      }else if(Object.prototype.hasOwnProperty.call(APP.studentTerms, sid) && APP.studentTerms[sid]){
+        // 後端明確記著「已清除」→ 本機也跟著清除，改回自動推算
+        APP.studentTerms[sid]='';
+        if(APP.students[sid]) APP.students[sid].term='';
+        cleared++;
+      }
+    });
+  }
+
+  if(srvAt) APP.studentTermsAt=srvAt;   // 時間戳一律由伺服器蓋章，避免各裝置時鐘不同步
+  _saveStudentTermsLocal(false);
+  if(adopted||cleared) console.log('[terms] 已採用後端學期 '+adopted+' 筆，清除 '+cleared+' 筆');
+  if(typeof data==='object' && data && typeof data.defaultNewTerm==='string' && data.defaultNewTerm){
+    APP.defaultNewTerm=data.defaultNewTerm;
+    try{ localStorage.setItem('default_new_term', APP.defaultNewTerm); }catch(e){}
+  }
+}
+
+/* 帳號清單重新載入後，把本機留底的學期回貼（僅用於後端尚未支援 term 的舊版相容路徑） */
+function reconcileStudentTerms(fullList){
   if(!APP.students) return;
   if(!APP.studentTerms) APP.studentTerms={};
   Object.keys(APP.students).forEach(function(sid){
-    var local=APP.studentTerms[sid];
+    var hasLocal=Object.prototype.hasOwnProperty.call(APP.studentTerms, sid);
+    var local=hasLocal?String(APP.studentTerms[sid]||''):'';
     var remote=APP.students[sid].term;
-    if(local) APP.students[sid].term=local;          // 本機指定優先（後端多半還沒有此欄位）
+    // ★ FIX v1.6.1：用 hasOwnProperty 判斷，'' 代表「管理員已明確清除」，
+    //   不可再被後端舊值救回來（舊版用 if(local) 會誤判成沒指定）。
+    if(hasLocal) APP.students[sid].term=local;       // 本機指定優先（後端多半還沒有此欄位）
     else if(remote) APP.studentTerms[sid]=remote;    // 後端有值 → 收進本機留底
   });
-  // 清掉已刪除帳號的殘留
-  Object.keys(APP.studentTerms).forEach(function(sid){
-    if(!APP.students[sid]) delete APP.studentTerms[sid];
-  });
+  // ★ FIX v1.6.1：孤兒清除改為「只在確定拿到完整名單時」才執行。
+  //   舊版無條件刪除，只要後端回傳部分名單（老師角色 / 權限過濾 / 暫時性錯誤），
+  //   不在名單裡的學生指定學期就會被刪光，再被 saveConfigToSheets 帶著新時間戳
+  //   推上雲端 → 所有裝置永久遺失，畫面退回「依實習起始日自動推算」。
+  if(fullList===true){
+    Object.keys(APP.studentTerms).forEach(function(sid){
+      if(!APP.students[sid]) delete APP.studentTerms[sid];
+    });
+  }
   _saveStudentTermsLocal(false);
 }
 
@@ -1882,7 +1981,26 @@ async function loadAccountsFromBackend(){
   if(data.studentOrder && data.studentOrder.length>0) APP.studentOrder = data.studentOrder;
   if(data.teacherOrder && data.teacherOrder.length>0) APP.teacherOrder = data.teacherOrder;
   // ★ v1.6：APP.students 被整包覆蓋後，把本機留底的「學期」標記回貼
-  try{ reconcileStudentTerms(); }catch(e){ console.warn('reconcileStudentTerms failed', e); }
+  // ★ FIX v1.6.1：只有「管理員 + 後端確實回了學生名單」時，才允許清除孤兒紀錄。
+  //   其他角色（老師 / 學生）拿到的可能是過濾後的部分名單，不可用來判定「這個帳號不存在」。
+  var _isFullList = (APP.currentRole==='admin') && !!(data.students && Object.keys(data.students).length>0);
+  /* ★ FIX v19.4【學期同步】v19.3 後端已在 loadAccounts 回傳 studentTerms /
+     studentTermsAt / defaultNewTerm，但舊版前端完全沒有讀它，後端的「雙保險」
+     等於白做。這裡改成：後端有回 → 走 adoptServerTerms（後端權威）；
+     後端沒回（舊版 GAS）→ 才退回舊的 reconcileStudentTerms 本機優先邏輯。 */
+  try{
+    if(data && typeof data.studentTerms==='object' && data.studentTerms!==null){
+      adoptServerTerms(data);
+      if(_isFullList){
+        Object.keys(APP.studentTerms||{}).forEach(function(sid){
+          if(!APP.students[sid]) delete APP.studentTerms[sid];
+        });
+        _saveStudentTermsLocal(false);
+      }
+    }else{
+      reconcileStudentTerms(_isFullList);
+    }
+  }catch(e){ console.warn('adoptServerTerms failed', e); }
   
   console.log('[loadAccounts] 學生 ' + Object.keys(APP.students).length + 
               ' 位，老師 ' + Object.keys(APP.teachers).length + ' 位');
@@ -2001,8 +2119,15 @@ async function doRegister(){
     }catch(e){}
 
     // 儲存 session token
-    if(data.token && typeof setSessionToken==='function'){
-      setSessionToken(data.token, data.expiresInSec);
+    /* ★ FIX v19.4【致命】舊版寫成 setSessionToken()，但本檔根本沒有這個函式
+       （正確名稱是 saveSession()）。加上 typeof 守衛後錯誤被靜靜吞掉，
+       導致自助註冊的學生「畫面看起來登入成功、實際上沒有 session token」，
+       之後每一次 saveFormToSheets 都被後端擋掉，資料只留在 localStorage，
+       清快取或換裝置就全部消失。 */
+    if(data.token){
+      saveSession(data.token, data.expiresInSec || 28800);
+    }else{
+      console.warn('[register] 後端未回傳 token，請確認 GAS 版本');
     }
     // 登入狀態
     APP.currentRole='student';
@@ -4745,6 +4870,16 @@ async function openForm(id){
         }
       });
     }catch(e){}
+    /* ★ FIX v19.5：mergeNonEmpty 是「空的就補」，會讓使用者剛清空的欄位
+       被裸 id / 舊草稿的舊值補回來 —— 這就是「刪掉分數、切走再回來又出現」
+       的其中一條路徑。合併完後把已登記刪除的 key 再清一次。 */
+    try{
+      if(typeof getDeletedKeysFor==='function'){
+        getDeletedKeysFor(formKey).forEach(function(k){
+          delete APP.formData[formKey][k];
+        });
+      }
+    }catch(e){}
     // 合併 historyLog（這個沒有「空值覆蓋」問題，照舊去重合併即可）
     if(!APP.historyLog[formKey])APP.historyLog[formKey]=[];
     keysToMerge.forEach(function(k){
@@ -5649,12 +5784,17 @@ function enableRadioToggleClear(){
   });
 }
 
-/* ═══════════ 老師端:防誤改學生欄位(B 方案 — 點擊提醒)═══════════
- * 設計理念:老師看到的學生欄位「外觀正常、可看清楚內容」,
- * 但點擊要編輯時會跳 confirm:「您要修改學生填的欄位嗎?」
- * 按確定 → 該欄位這次可編輯;按取消 → 該欄位仍維持唯讀
+/* ═══════════ 老師端:學生欄位唯讀(v19.5 由 B 方案「點擊提醒」升級)═══════════
+ * v19.4 以前:老師點學生欄位會跳 confirm,按確定就能改。
+ * v19.5 起  :直接唯讀,老師看得到內容但改不了。
  *
- * 對稱於 lockTeacherFields:學生不能改老師區、老師也不該誤改學生區 */
+ * 為什麼要升級:v19.5 修好了「清空的欄位刪不掉」——在那之前,老師就算把學生
+ * 填的內容刪光也存不進雲端(等於有個意外的保護網);修好之後刪除會真的生效,
+ * 所以必須把「老師能不能改學生欄位」這件事講清楚。
+ *
+ * ⚠ 只對 currentRole==='teacher' 生效。管理員維持完整編輯權限,
+ *   需要代為修正資料時請用管理員帳號。
+ * 對稱於 lockTeacherFields:學生不能改老師區、老師也不能改學生區。 */
 function lockStudentFields(){
   // 【權限】只有老師生效(學生/管理員不需此保護)
   if(APP.currentRole!=='teacher') return;
@@ -5691,6 +5831,9 @@ function lockStudentFields(){
   //   一律視為老師欄位,絕對不掛守護(避免老師被自己該填的欄位擋下來)
   function isExplicitTeacherElement(el){
     if(el.getAttribute('data-teacher')==='1') return true;
+    // ★ FIX v19.5：renderForm 會預先替所有「明確的老師元素」蓋上這個標記，
+    //   一併認可，確保老師欄位絕不會被誤鎖成唯讀。
+    if(el.getAttribute('data-student-confirmed')==='1') return true;
     var k = el.getAttribute('data-key') || el.getAttribute('data-rkey') || '';
     if(k && typeof isTeacherFieldKey==='function' && isTeacherFieldKey(k)) return true;
     return false;
@@ -5711,31 +5854,46 @@ function lockStudentFields(){
     // ★ radio / checkbox 需要特別處理:
     //   (1) 視覺提示要套在外層 label(因為 radio 本身的 border-left 看不出來)
     //   (2) 攔截要同時掛 mousedown + click,因為點 label 時可能繞過 mousedown
+    /* ★★★ FIX v19.5：改為「唯讀」(原本是 B 方案：點擊跳 confirm) ★★★
+       原因：v19.5 修好「清空欄位存不掉」之後，老師若真的把學生欄位清空，
+       這次會真的同步刪除雲端資料。既然老師本來就不該改學生填的內容，
+       乾脆從源頭擋掉，比事後跳確認框更安全。
+       ── 文字類用 readonly：內容看得到、選得到、可捲動（個案報告很長）
+       ── 選項類用 disabled：readonly 對 select / radio / checkbox 無效
+       ── disabled 的欄位不會被 saveForm 的 DOM 蒐集掃到，也就不可能產生
+          刪除墓碑，學生資料因此雙重保險。
+       ⚠ 管理員不受影響（函式開頭已限定 currentRole==='teacher' 才執行）。 */
     var isRadioOrCheckbox = (el.type==='radio' || el.type==='checkbox');
-    if(isRadioOrCheckbox){
-      // 視覺提示:給外層 label 加底色與左邊條
+    var isSelectOrDate = (el.tagName==='SELECT' || el.type==='date');
+    var _roTip = '🔒 此欄位由學生填寫，老師端唯讀';
+
+    if(isRadioOrCheckbox || isSelectOrDate){
+      // readonly 對這幾種控制項無效 → 用 disabled
+      el.disabled = true;
+      el.title = _roTip;
       var parentLabel = el.closest('label');
       if(parentLabel && !parentLabel.hasAttribute('data-student-label-styled')){
         parentLabel.setAttribute('data-student-label-styled','1');
         parentLabel.style.borderLeft = '3px solid #3B82F6';
-        parentLabel.style.background = 'rgba(59,130,246,0.08)';
+        parentLabel.style.background = 'rgba(59,130,246,0.06)';
         parentLabel.style.paddingLeft = '6px';
         parentLabel.style.borderRadius = '4px';
-        parentLabel.title = '⚠ 此欄位由學生填寫,點擊將跳出確認對話框';
+        parentLabel.title = _roTip;
       }
-      el.title = '⚠ 此欄位由學生填寫,點擊將跳出確認對話框';
-      // radio/checkbox:三種事件都要監聽,確保「點 label 文字」也能攔到
-      el.addEventListener('mousedown', _studentFieldGuardHandler, true);
-      el.addEventListener('click', _studentFieldGuardHandler, true);
-      el.addEventListener('keydown', _studentFieldGuardKeyHandler, true);
+      if(isSelectOrDate){
+        el.style.borderLeft = '3px solid #3B82F6';
+        el.style.background = 'var(--cream)';
+      }
     } else {
-      // text/date/textarea/select:邊框視覺提示就夠了
+      // text / number / textarea：用 readonly，老師仍可選取複製內容
+      el.readOnly = true;
+      el.title = _roTip;
       el.style.borderLeft = '3px solid #3B82F6';
-      el.title = '⚠ 此欄位由學生填寫,點擊將跳出確認對話框';
-      // 攔截 focus/click — 第一次互動時跳 confirm,確認後才放行
-      el.addEventListener('mousedown', _studentFieldGuardHandler, true);
-      el.addEventListener('keydown', _studentFieldGuardKeyHandler, true);
-      el.addEventListener('focus', _studentFieldGuardFocusHandler, true);
+      el.style.background = 'var(--cream)';
+      el.style.cursor = 'default';
+      // readonly 仍可 focus；點下去給個提示，避免老師以為系統壞了
+      el.addEventListener('focus', _studentFieldReadOnlyHint, true);
+      el.addEventListener('click', _studentFieldReadOnlyHint, true);
     }
   });
 
@@ -5745,12 +5903,34 @@ function lockStudentFields(){
     if(btn.getAttribute('data-teacher')==='1') return; // 同時有 teacher 標記 → 視為老師欄位,跳過
     var rkey = btn.getAttribute('data-rkey') || btn.getAttribute('data-key') || '';
     if(rkey && typeof isTeacherFieldKey==='function' && isTeacherFieldKey(rkey)) return; // 白名單豁免
+    if(btn.getAttribute('data-student-confirmed')==='1') return;  // ★ FIX v19.5 保險
     if(btn.getAttribute('data-student-guarded')==='1') return;
     btn.setAttribute('data-student-guarded','1');
+    /* ★ FIX v19.5：改為完全不可點（原本是點擊跳 confirm）。
+       不用 disabled 屬性，是為了保留原本的選中／未選中配色，
+       老師仍看得出學生選了哪一格。 */
     btn.style.borderLeft = '3px solid #3B82F6';
-    btn.title = '⚠ 此為學生填寫的欄位,點擊將跳出確認對話框';
-    btn.addEventListener('click', _studentFieldGuardHandler, true);
+    btn.style.cursor = 'not-allowed';
+    btn.style.opacity = '0.85';
+    btn.title = '🔒 此為學生填寫的欄位，老師端唯讀';
+    btn.addEventListener('click', _studentFieldReadOnlyBlock, true);
+    btn.addEventListener('mousedown', _studentFieldReadOnlyBlock, true);
   });
+}
+
+/* ★ FIX v19.5：老師點到唯讀的學生欄位時給個提示，避免以為系統壞掉 */
+var _studentRoHintAt = 0;
+function _studentFieldReadOnlyHint(){
+  var now = Date.now();
+  if(now - _studentRoHintAt < 2500) return;   // 防抖，避免連續跳
+  _studentRoHintAt = now;
+  try{ toast('🔒 此欄位由學生填寫，老師端為唯讀'); }catch(e){}
+}
+function _studentFieldReadOnlyBlock(ev){
+  ev.preventDefault();
+  ev.stopPropagation();
+  if(typeof ev.stopImmediatePropagation==='function') ev.stopImmediatePropagation();
+  _studentFieldReadOnlyHint();
 }
 
 /* mousedown / click 守護:阻止互動 → 跳 confirm → 確認後解除該元素守護 */
@@ -6266,6 +6446,20 @@ function saveForm(id, silent){
       }
     });
   }catch(e){}
+
+  /* ★ FIX v19.5：上面兩段合併都是「target 為空就補值」，
+     使用者剛剛清空的欄位在 formKey 是空的，會被裸 id / 舊草稿的舊值補回來。
+     這裡把「已登記刪除」的 key 再清一次，確保清空動作不會在存檔途中被撤銷。 */
+  function _purgeDeletedKeys(){
+    if(typeof getDeletedKeysFor!=='function') return;
+    try{
+      getDeletedKeysFor(formKey).forEach(function(k){
+        if(APP.formData[formKey]) delete APP.formData[formKey][k];
+        if(id!==formKey && APP.formData[id]) delete APP.formData[id][k];
+      });
+    }catch(e){}
+  }
+  _purgeDeletedKeys();
   // 收集所有可見欄位（用 id 或 formKey 都接受）
   document.querySelectorAll('[data-fid][data-key]').forEach(function(el){
     if(!el.disabled){
@@ -6312,6 +6506,7 @@ function saveForm(id, silent){
   });
   // 同時儲存到 localStorage 草稿
   try{
+    _purgeDeletedKeys();   // ★ FIX v19.5：快照前再清一次，草稿才不會留下已刪的欄位
     var draftSave=JSON.parse(localStorage.getItem('form_drafts')||'{}');
     draftSave[formKey]=Object.assign({},APP.formData[formKey]);
     localStorage.setItem('form_drafts',JSON.stringify(draftSave));
@@ -6333,6 +6528,7 @@ function saveForm(id, silent){
     });
     // ★ 整理完後乾脆清掉裸 id,避免後續再次被掃進來
     if(id!==formKey) delete APP.formData[id];
+    _purgeDeletedKeys();   // ★ FIX v19.5：裸 id 補值後再清一次
   }
 
   // ★★★ 老師端必填欄位檢查:儲存前若有缺漏,跳出警示讓老師選擇 ★★★
@@ -6441,6 +6637,10 @@ async function saveFormToSheets(id){
   // ★ 只用 formKey 的資料上雲;不再 merge 裸 id(裸 id 是跨學生共用空間,
   //   可能含上一位被檢視學生的污染殘留,merge 進來會把錯誤資料推到雲端)
   let mergedData=Object.assign({},APP.formData[formKey]||{});
+  /* ★ FIX v19.5：記下這次上傳「實際套用了哪些刪除墓碑」，
+     待雲端回報寫入成功後就撤掉它們 —— 墓碑的任務只是「撐到雲端確認刪除為止」，
+     留著超過這段時間，反而可能把別台裝置後來填回的值再刪一次。 */
+  var _appliedTombstones = [];
 
   // ★★★【防覆蓋修補 v1.6:送出前先抓雲端現有資料再合併】★★★
   //   根因:任何一方(尤其老師端)儲存時,APP.formData[formKey] 可能只含自己這方的欄位
@@ -6468,7 +6668,8 @@ async function saveFormToSheets(id){
         });
         // 3) 尊重本機「再點清除」明確刪除的欄位
         if(typeof getDeletedKeysFor === 'function'){
-          getDeletedKeysFor(formKey).forEach(function(k){ delete _m[k]; });
+          _appliedTombstones = getDeletedKeysFor(formKey).slice();
+          _appliedTombstones.forEach(function(k){ delete _m[k]; });
         }
         mergedData = _m;
         // 同步回寫記憶體,讓畫面也保有合併後的完整資料(避免緊接著的同步又把畫面清空)
@@ -6527,6 +6728,12 @@ async function saveFormToSheets(id){
           toast('⚠ 登入逾時，請重新登入', false);
           clearSession();
         }
+        return;   // 失敗 → 墓碑保留，下次再試
+      }
+      /* ★ FIX v19.5：雲端已確認收下（刪除的欄位不在 payload 裡了），
+         墓碑任務完成即撤銷，避免它在接下來 24 小時內誤刪別台裝置填回的值。 */
+      if(_appliedTombstones.length && typeof unmarkFieldDeleted==='function'){
+        _appliedTombstones.forEach(function(k){ unmarkFieldDeleted(formKey, k); });
       }
     }).catch(e=>console.warn('saveFormToSheets error:',e));
   }catch(e){console.warn('saveFormToSheets error:',e);}
@@ -10226,12 +10433,41 @@ function saveDraftField(fid, key, val){
     targetKey = canonical;
   }
   if(!APP.formData[targetKey]) APP.formData[targetKey] = {};
-  APP.formData[targetKey][key] = val;
+
+  /* ★★★ FIX v19.5【清空的欄位刪不掉】★★★
+     ── 病因 ──────────────────────────────────────────────────────
+     舊版把清空的欄位寫成空字串 '' 就結束了，沒有登記「刪除墓碑」。
+     但 saveFormToSheets 為了防止兩方互相洗資料，採「雲端為底、本次非空值
+     才覆蓋」的合併策略：
+         1) 先鋪上雲端所有既有欄位
+         2) 再用本次的「非空值」覆蓋   ← '' 在這一步被跳過
+         3) 只刪掉列在墓碑清單裡的 key ← 空字串沒登記，所以刪不到
+     結果雲端的舊分數原封不動地存活，而且第 3 步之後還會
+     `APP.formData[formKey] = _m` 回寫記憶體 → 連本機記憶體的舊值都一起復活。
+     這就是「刪掉分數、跳去別張表單再回來，分數又出現」的原因。
+
+     墓碑機制本來就存在（setRating 的「再點一次＝清除」用得好好的），
+     只是走 saveDraftField 這條路的欄位從來沒登記過。這裡補上，
+     F13／F14 的分數輸入格、以及所有文字框／文字區塊一併治好。 */
+  var isCleared = (val === '' || val === null || val === undefined);
+  if(isCleared){
+    delete APP.formData[targetKey][key];
+    if(typeof markFieldDeleted==='function') markFieldDeleted(targetKey, key);
+  }else{
+    APP.formData[targetKey][key] = val;
+    // 使用者重新填值 → 一定要把墓碑撤掉，否則下次同步又被清掉
+    if(typeof unmarkFieldDeleted==='function') unmarkFieldDeleted(targetKey, key);
+  }
+
   // 立即存 localStorage（同樣只寫 targetKey）
   try{
     var drafts = JSON.parse(localStorage.getItem('form_drafts')||'{}');
     if(!drafts[targetKey]) drafts[targetKey] = {};
-    drafts[targetKey][key] = val;
+    if(isCleared){
+      delete drafts[targetKey][key];
+    }else{
+      drafts[targetKey][key] = val;
+    }
     localStorage.setItem('form_drafts', JSON.stringify(drafts));
   }catch(e){}
   // ★ 觸發自動儲存
@@ -13826,6 +14062,11 @@ function renderAdmin(){
           ${termDatalistHtml('term-suggest-list2')}
           <button class="btn-add" onclick="saveDefaultNewTerm()">儲存預設</button>
         </div>
+        <!-- ★ FIX v19.4：升級後的一次性同步入口 -->
+        <div class="admin-row" style="align-items:center;flex-wrap:wrap;gap:6px;margin-top:8px;">
+          <button class="btn-update" onclick="syncAllTermsToCloud()">☁ 將本機學期一次同步到雲端</button>
+          <span style="font-size:10.5px;color:var(--ink3);">首次升級到 v19.4 後按一次即可；之後每次指定學期都會自動同步。</span>
+        </div>
         <div style="margin-top:12px;" id="term-overview-box">${adminTermOverviewHtml()}</div>
         <div style="margin-top:12px;background:var(--cream);border:1px solid var(--border2);border-radius:var(--r);padding:10px 12px;">
           <div style="font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:6px;">✏️ 學期更名（整批改名，例如打錯字或統一格式）</div>
@@ -14078,13 +14319,29 @@ async function saveConfigToSheets(){
     if(_lsA>(+(APP.cohortTermAt||0))){ APP.cohortTerm=_lsT||''; APP.cohortTermAt=_lsA; }
   }catch(e){}
 
+  // ★ FIX v1.6.1 保險絲：若記憶體裡的學期對照表是空的，但 localStorage 還有留底，
+  //   代表這次是異常狀態（例如載入失敗後被清空），此時絕不可把空 map 推上雲端，
+  //   否則所有裝置的學期分組會一起被清掉。改為先從留底救回來。
+  try{
+    var _memCount=Object.keys(APP.studentTerms||{}).length;
+    if(_memCount===0){
+      var _bk=JSON.parse(localStorage.getItem('student_terms')||'{}');
+      if(_bk && Object.keys(_bk).length>0){
+        APP.studentTerms=_bk;
+        console.warn('[terms] 記憶體對照表為空，已自 localStorage 還原 '+Object.keys(_bk).length+' 筆');
+      }
+    }
+  }catch(e){}
+
+  /* ★ FIX v19.4【學期同步】刻意「不再」把 studentTerms / studentTermsAt 塞進 config。
+     學期改走專屬的 setStudentTerm API（直接寫 Students.term，時間戳由伺服器蓋章）。
+     舊版把整包對照表挾帶在 config 裡，等於每次存個課程主題都在推送一份可能過期的
+     學期快照 —— 這正是「學期會自己跳回舊學年度」的最後一條殘留路徑。 */
   const config={
     students:APP.students, teachers:APP.teachers, adminPwd:APP.adminPwd,
     teacherPIN:APP.teacherPIN, examPIN:APP.examPIN,
     courseTopics:APP.courseTopics, courseSpeakers:APP.courseSpeakers,
     cohortTerm:APP.cohortTerm||'', cohortTermAt:APP.cohortTermAt||0,
-    // ★ v1.6 學期分類：{sid:學期} 對照表 + 時間戳（跨裝置同步用）
-    studentTerms:APP.studentTerms||{}, studentTermsAt:APP.studentTermsAt||0,
     defaultNewTerm:APP.defaultNewTerm||'',
     studentOrder:APP.studentOrder||[], teacherOrder:APP.teacherOrder||[]
   };
@@ -14140,14 +14397,25 @@ function applyConfig(cfg){
   if(cfg.studentOrder && cfg.studentOrder.length>0) APP.studentOrder=cfg.studentOrder;
   if(cfg.teacherOrder && cfg.teacherOrder.length>0) APP.teacherOrder=cfg.teacherOrder;
   // ★ v1.6 學期分類：只有伺服器版本較新才覆蓋，避免舊值蓋掉本機剛改的分類
+  // ★ FIX v1.6.1：改為「逐筆合併」而非整包覆蓋。
+  //   舊版 APP.studentTerms=cfg.studentTerms 是整個 map 換掉，且比較基準是各裝置
+  //   自己的 Date.now()（時鐘不同步就會誤判），只要雲端那份是舊的 / 缺人，
+  //   剛指定好的學期就會在下一次載入設定時被整批打回自動推算。
+  /* ★ FIX v19.4：改為「純補位」——只填本機完全沒有的 sid，絕不覆蓋、絕不清除。
+     權威來源已改為 loadAccounts 回傳的 Students.term（見 adoptServerTerms）；
+     這裡只負責在舊版 GAS / 離線快取的情況下不要讓分組整個消失。 */
   if(cfg.studentTerms && typeof cfg.studentTerms==='object'){
-    var _srvTAt=+(cfg.studentTermsAt||0), _locTAt=+(APP.studentTermsAt||0);
-    if(_srvTAt>=_locTAt){
-      APP.studentTerms=cfg.studentTerms; APP.studentTermsAt=_srvTAt;
-      try{
-        localStorage.setItem('student_terms', JSON.stringify(APP.studentTerms));
-        localStorage.setItem('student_terms_at', String(_srvTAt));
-      }catch(e){}
+    if(!APP.studentTerms) APP.studentTerms={};
+    var _filled=0;
+    Object.keys(cfg.studentTerms).forEach(function(sid){
+      var sv=String(cfg.studentTerms[sid]==null?'':cfg.studentTerms[sid]).trim();
+      if(!sv) return;
+      if(!Object.prototype.hasOwnProperty.call(APP.studentTerms, sid)){
+        APP.studentTerms[sid]=sv; _filled++;
+      }
+    });
+    if(_filled){
+      try{ localStorage.setItem('student_terms', JSON.stringify(APP.studentTerms)); }catch(e){}
     }
   }
   if(typeof cfg.defaultNewTerm==='string' && cfg.defaultNewTerm){
@@ -14771,7 +15039,12 @@ async function updateStudentIntern(sid){
   // 先更新本機快取(畫面即時反映)
   acc.intern_cat=cat; acc.intern_start=start; acc.intern_end=end;
   // 送後端(附帶現有 name/school，避免被清空)
-  var result = await callBackend('updateStudent', {sid:sid, name:acc.name, school:acc.school||'', intern_cat:cat, intern_start:start, intern_end:end});
+  // ★ FIX v1.6.1：一併帶上 term / expiry，避免後端重寫整列時把學期洗掉。
+  var result = await callBackend('updateStudent', {
+    sid:sid, name:acc.name, school:acc.school||'',
+    intern_cat:cat, intern_start:start, intern_end:end,
+    expiry:acc.expiry||'', term:_currentTermForSave(sid)
+  });
   if(!result || !result.ok){
     toast('⚠ 實習資料已暫存本機，但後端未確認（可能需先更新後端欄位）', false);
   }else{
@@ -16268,13 +16541,26 @@ function downloadCohortPDF(sectionId){
   toast('✓ 列印對話框即將開啟，請選擇「另存為 PDF」');
 }
 
-function saveCohortTerm(){
+async function saveCohortTerm(){
   var el=document.getElementById('cohort-term-input');
   var v=el?(el.value||'').trim():'';
   APP.cohortTerm=v;
-  try{ localStorage.setItem('cohort_term', v); }catch(e){}
-  if(typeof saveConfigToSheets==='function'){ try{ saveConfigToSheets(); }catch(e){} }
-  if(typeof toast==='function') toast(v?'✓ 班級學期已儲存（將顯示於班級統整 PDF 表頭）':'✓ 已清空，PDF 將自動推算學期');
+  APP.cohortTermAt=Date.now();
+  try{
+    localStorage.setItem('cohort_term', v);
+    localStorage.setItem('cohort_term_at', String(APP.cohortTermAt));
+  }catch(e){}
+
+  // ★ FIX v19.2: 走專屬 setCohortTerm API,並用回傳值驗證伺服器真的寫進去了
+  var res = await callBackend('setCohortTerm', {term: v});
+  if(res && res.ok && res.cohortTerm === v){
+    if(res.cohortTermAt) { APP.cohortTermAt = +res.cohortTermAt || APP.cohortTermAt; try{ localStorage.setItem('cohort_term_at', String(APP.cohortTermAt)); }catch(e){} }
+    toast(v ? '✓ 班級學期已儲存並確認寫入 Google Sheets' : '✓ 已清空（PDF 將自動推算學期）');
+  }else if(res && res.error && String(res.error).indexOf('Unknown action')>=0){
+    toast('⚠ GAS 後端尚未更新（找不到 setCohortTerm）。請先貼上新版 GAS 並重新部署。', false);
+  }else{
+    toast('⚠ 伺服器未寫入：'+((res&&res.error)||'未知錯誤')+'。目前僅存於本機，其他裝置匯出會不同。', false);
+  }
 }
 function addTopic(){const v=document.getElementById('new-topic').value.trim();if(v&&!APP.courseTopics.includes(v)){APP.courseTopics.push(v);refreshTopicList();saveConfigToSheets();document.getElementById('new-topic').value='';}}
 function delTopic(i){APP.courseTopics.splice(i,1);refreshTopicList();saveConfigToSheets();}
@@ -16437,7 +16723,14 @@ async function updateStudentExpiry(sid, date) {
   var acc = APP.students[sid];
   if (!acc) return;
   acc.expiry = date;
-  var result = await callBackend('updateStudent', {sid:sid, name:acc.name, school:acc.school||'', expiry:date});
+  // ★ FIX v1.6.1：後端 updateStudent 若採「依傳入欄位重寫整列」，
+  //   只送 expiry 會把 term / 實習三欄洗成空白 → 學期分組隔天就跑掉。
+  //   一律把現有值一起帶上。
+  var result = await callBackend('updateStudent', {
+    sid:sid, name:acc.name, school:acc.school||'', expiry:date,
+    intern_cat:acc.intern_cat||'', intern_start:acc.intern_start||'', intern_end:acc.intern_end||'',
+    term:_currentTermForSave(sid)
+  });
   if(!result || !result.ok){ toast('⚠ 帳號期限已暫存本機，但後端未確認（可能需更新後端版本）', false); }
   else { toast('✓ 帳號期限已更新'); }
 }
@@ -16446,6 +16739,50 @@ async function updateStudentExpiry(sid, date) {
 /* ════════════════════════════════════════════════════════════════════
    ★ v1.6 學期（梯次）— 管理員後台操作
    ════════════════════════════════════════════════════════════════════ */
+
+/* ★ FIX v19.4【學期同步】統一的學期寫入通道。
+   一次呼叫 setStudentTerm 批次 API：後端會同時寫進 Students.term 與
+   Config.studentTerms（時間戳由伺服器蓋章），並回讀驗證。
+   舊版是「跑 N 次 updateStudent + 再存一次整包 config」，30 位學生 = 31 次
+   整張表讀寫，中途逾時就只改到一半，而且會把可能過期的 config 推上去。
+   參數 map: {sid: '學期字串'}，空字串＝清除指定（改回自動推算） */
+async function pushTermsToServer(map){
+  var sids=Object.keys(map||{});
+  if(!sids.length) return {ok:true, updated:[]};
+  var res=await callBackend('setStudentTerm', {terms: map});
+  if(!res || !res.ok){
+    // 舊版 GAS 沒有這支 API → 退回逐筆 updateStudent，功能不中斷
+    var msg=(res&&res.error)||'';
+    if(msg.indexOf('Unknown action')>=0){
+      console.warn('[terms] 後端尚未支援 setStudentTerm，退回逐筆 updateStudent');
+      for(var i=0;i<sids.length;i++){
+        var acc=APP.students[sids[i]]; if(!acc) continue;
+        try{ await callBackend('updateStudent', {sid:sids[i], name:acc.name, school:acc.school||'',
+          term:map[sids[i]], intern_cat:acc.intern_cat||'', intern_start:acc.intern_start||'',
+          intern_end:acc.intern_end||'', expiry:acc.expiry||''}); }catch(e){}
+      }
+      toast('⚠ 後端版本較舊（無 setStudentTerm），已用相容模式寫入。建議更新 GAS 至 v19.4。', false);
+      return {ok:true, updated:sids, legacy:true};
+    }
+    toast('⚠ 學期未能寫入雲端：'+(msg||'未知錯誤')+'（僅暫存本機）', false);
+    return {ok:false, error:msg};
+  }
+  // 伺服器回讀驗證的結果就是唯一真相 → 直接覆蓋本機
+  if(res.verify && typeof res.verify==='object'){
+    Object.keys(res.verify).forEach(function(sid){
+      var v=String(res.verify[sid]||'');
+      if(v==='(讀不到)') return;
+      APP.studentTerms[sid]=v;
+      if(APP.students[sid]) APP.students[sid].term=v;
+    });
+  }
+  if(res.studentTermsAt) APP.studentTermsAt=+res.studentTermsAt||APP.studentTermsAt;
+  _saveStudentTermsLocal(false);
+  if(res.notFound && res.notFound.length){
+    toast('⚠ 有 '+res.notFound.length+' 個學號在後端找不到：'+res.notFound.slice(0,3).join('、'), false);
+  }
+  return res;
+}
 
 /* 單筆更新學生所屬學期（留空＝改回自動推算） */
 async function updateStudentTerm(sid){
@@ -16456,11 +16793,12 @@ async function updateStudentTerm(sid){
   setStudentTermLocal(sid, term);
   refreshStudentTable();
   try{ var box=document.getElementById('term-overview-box'); if(box) box.innerHTML=adminTermOverviewHtml(); }catch(e){}
-  // 送後端（後端若尚未支援 term 欄位會忽略；本機 + 設定檔仍會保存）
-  try{ await callBackend('updateStudent', {sid:sid, name:acc.name, school:acc.school||'', term:term}); }catch(e){}
-  // 同步到 Google Sheets 設定檔 → 其他裝置/老師端也看得到分組
-  try{ saveConfigToSheets(); }catch(e){}
-  toast(term ? ('✓ 已將 '+esc(acc.name)+' 歸入「'+esc(term)+'」') : ('✓ 已清除指定，改為自動推算：'+esc(getStudentTerm(sid))));
+  var m={}; m[sid]=term;
+  var res=await pushTermsToServer(m);
+  refreshStudentTable();
+  if(!res || !res.ok) return;
+  toast(term ? ('✓ 已將 '+esc(acc.name)+' 歸入「'+esc(term)+'」（已同步雲端）')
+             : ('✓ 已清除指定，改為自動推算：'+esc(getStudentTerm(sid))));
 }
 
 /* 批次指定 / 清除學期 */
@@ -16483,12 +16821,36 @@ async function batchSetTerm(clear){
   sids.forEach(function(sid){ setStudentTermLocal(sid, clear?'':term); });
   refreshStudentTable();
   try{ var box=document.getElementById('term-overview-box'); if(box) box.innerHTML=adminTermOverviewHtml(); }catch(e){}
-  for(var i=0;i<sids.length;i++){
-    var acc=APP.students[sids[i]]; if(!acc) continue;
-    try{ await callBackend('updateStudent', {sid:sids[i], name:acc.name, school:acc.school||'', term:clear?'':term}); }catch(e){}
+  // ★ FIX v19.4：一次批次寫入（原本是 N 次 updateStudent + 一次整包 config）
+  var _map={};
+  sids.forEach(function(sid){ _map[sid]=clear?'':term; });
+  var _res=await pushTermsToServer(_map);
+  refreshStudentTable();
+  try{ var box2=document.getElementById('term-overview-box'); if(box2) box2.innerHTML=adminTermOverviewHtml(); }catch(e){}
+  if(!_res || !_res.ok) return;
+  toast(clear ? ('✓ 已清除 '+sids.length+' 位學生的指定學期（已同步雲端）')
+              : ('✓ 已將 '+sids.length+' 位學生歸入「'+esc(term)+'」（已同步雲端）'));
+}
+
+/* ★ FIX v19.4：一次性把本機所有「人工指定」的學期推上雲端。
+   升級到 v19.4 後按一次，就能把先前只活在這台瀏覽器 localStorage 裡的
+   學期指定，全部寫進 Students 分頁的 term 欄（老師端/其他裝置才看得到）。 */
+async function syncAllTermsToCloud(){
+  if(APP.currentRole!=='admin'){ toast('⚠ 只有管理員可執行'); return; }
+  var map={};
+  Object.keys(APP.students||{}).forEach(function(sid){
+    var t=_currentTermForSave(sid);
+    if(t) map[sid]=t;                       // 只推「有指定」的，空白不動（避免誤清）
+  });
+  var n=Object.keys(map).length;
+  if(!n){ toast('⚠ 目前沒有任何人工指定的學期可同步'); return; }
+  if(!confirm('將本機 '+n+' 位學生的「指定學期」寫入雲端（Students 分頁 term 欄）。\n\n這會以本機的值為準覆蓋雲端，是否確認?')) return;
+  toast('⏳ 同步中…（'+n+' 位）');
+  var res=await pushTermsToServer(map);
+  if(res && res.ok){
+    toast('✓ 已同步 '+((res.updated&&res.updated.length)||n)+' 位學生的學期到雲端');
+    renderAdmin();
   }
-  try{ saveConfigToSheets(); }catch(e){}
-  toast(clear ? ('✓ 已清除 '+sids.length+' 位學生的指定學期') : ('✓ 已將 '+sids.length+' 位學生歸入「'+esc(term)+'」'));
 }
 
 /* 學生表格的學期篩選 */
@@ -16525,12 +16887,12 @@ async function renameTerm(){
   sids.forEach(function(sid){ setStudentTermLocal(sid, to); });
   if(APP.adminTermFilter===from) APP.adminTermFilter=to;
   refreshStudentTable();
-  for(var i=0;i<sids.length;i++){
-    var acc=APP.students[sids[i]]; if(!acc) continue;
-    try{ await callBackend('updateStudent', {sid:sids[i], name:acc.name, school:acc.school||'', term:to}); }catch(e){}
-  }
-  try{ saveConfigToSheets(); }catch(e){}
-  toast('✓ 已將 '+sids.length+' 位學生改標記為「'+esc(to)+'」');
+  // ★ FIX v19.4：一次批次寫入
+  var _map={};
+  sids.forEach(function(sid){ _map[sid]=to; });
+  var _res=await pushTermsToServer(_map);
+  if(!_res || !_res.ok){ renderAdmin(); return; }
+  toast('✓ 已將 '+sids.length+' 位學生改標記為「'+esc(to)+'」（已同步雲端）');
   renderAdmin();
 }
 
@@ -16730,6 +17092,12 @@ async function editStudent(sid) {
       term: acc.term||''
     };
     delete APP.students[sid];
+    // ★ v1.6 學期對照表也要跟著改學號，否則分組會遺失
+    if (APP.studentTerms && APP.studentTerms[sid]) {
+      APP.studentTerms[targetSid] = APP.studentTerms[sid];
+      delete APP.studentTerms[sid];
+      _saveStudentTermsLocal();
+    }
     if (APP.studentOrder && APP.studentOrder.indexOf(sid) >= 0) {
       APP.studentOrder = APP.studentOrder.map(function(s){ return s === sid ? targetSid : s; });
     }
@@ -16739,7 +17107,19 @@ async function editStudent(sid) {
     if (cleanPwd !== null) APP.students[sid].pwd = 'h2:(remote)';
   }
   refreshStudentTable();
-  toast('✓ 學生資料已更新');
+  /* ★ FIX v19.4：學號變更時，後端會一併把 Forms 分頁的 formId 尾綴改名，
+     並回傳 formsRenamed 筆數。舊版沒有這段，改完學號後該生所有表單會變成
+     孤兒（formId 尾綴還是舊學號），學生登入會看到一片空白。 */
+  if (targetSid !== sid) {
+    var _fr = (result && typeof result.formsRenamed === 'number') ? result.formsRenamed : null;
+    if (_fr === null) {
+      toast('⚠ 學號已改，但後端未回報表單搬移結果。請確認 GAS 已更新到 v19.4，否則舊表單會失聯。', false);
+    } else {
+      toast('✓ 學生資料已更新（同時搬移 ' + _fr + ' 筆表單資料）');
+    }
+  } else {
+    toast('✓ 學生資料已更新');
+  }
 }
 
 /* ── 老師帳號修改 ── */
