@@ -1002,7 +1002,7 @@ input[type="date"]{
       <div id="panel-teacher" style="display:none;">
         <div id="teacher-login-panel">
           <div class="fg"><label>教師卡號</label><input id="t-card" placeholder="請輸入卡號"></div>
-          <div class="fg"><label>密碼</label><div class="pwd-wrap"><input id="t-pwd" type="password" placeholder="預設：000"><button type="button" class="pwd-eye" onclick="togglePwdVisibility('t-pwd',this)" title="顯示密碼">👁</button></div></div>
+          <div class="fg"><label>密碼</label><div class="pwd-wrap"><input id="t-pwd" type="password" placeholder="預設：生日6碼，ex:790101"><button type="button" class="pwd-eye" onclick="togglePwdVisibility('t-pwd',this)" title="顯示密碼">👁</button></div></div>
           <button class="btn-primary" onclick="doLogin('teacher')">登入</button>
           <div class="login-err" id="t-err">卡號或密碼錯誤</div>
           <div style="margin-top:8px;font-size:11px;text-align:left;"><a href="javascript:void(0)" onclick="showPanel('teacher-change-panel')" style="color:var(--ink3);text-decoration:none;border-bottom:1px dashed var(--ink3);">修改密碼</a></div>
