@@ -3798,13 +3798,13 @@ const REQUIRED_STUDENT_FIELDS = {
     'f14_sc_0','f14_sc_1','f14_sc_2','f14_sc_3','f14_sc_4','f14_sc_5',
     'f14_sc_6','f14_sc_7','f14_sc_8','f14_sc_9','f14_sc_10','f14_sc_11',
     's_fb','t_fb','s_sign','s_sign_date','t_sign','t_sign_date'],
-  // DOPS：每張的評核項目數量不同（D01 NIV=16、D05 NIV=17、D02 Neonatal=20）
+  // DOPS：每張的評核項目數量不同（D01 NIV=16、D05 NIV=16、D02 Neonatal=20）
   // ★ 2026-08-20：D01 刪除原第5項後為 16 項
   D01: ['s_name','school','s_date','intern_cat','complexity']
     .concat(Array.from({length:16},function(_,i){return 'D01_i'+(i+1);}))
     .concat(['score_grade','result','s_feeling','t_fb','s_sign','s_sign_date','t_sign','t_sign_date']),
   D05: ['s_name','school','s_date','intern_cat','complexity']
-    .concat(Array.from({length:17},function(_,i){return 'D05_i'+(i+1);}))
+    .concat(Array.from({length:16},function(_,i){return 'D05_i'+(i+1);}))
     .concat(['score_grade','result','s_feeling','t_fb','s_sign','s_sign_date','t_sign','t_sign_date']),
   D02: ['s_name','school','s_date','intern_cat','complexity']
     .concat(Array.from({length:20},function(_,i){return 'D02_i'+(i+1);}))
@@ -5422,7 +5422,8 @@ var TEACHER_PROGRESS_OVERRIDE = {
          't_note','t_sign','t_sign_date'],
   // D01 DOPS:小兒非侵襲性呼吸器(NIV) Bubble CPAP — 老師端 (★ 2026-08-20 改為 16 評分 + 5)
   D01: ['D01_i1','D01_i2','D01_i3','D01_i4','D01_i5','D01_i6','D01_i7','D01_i8','D01_i9','D01_i10','D01_i11','D01_i12','D01_i13','D01_i14','D01_i15','D01_i16','score_grade','result','t_fb','t_sign','t_sign_date'],
-  D05: ['D05_i1','D05_i2','D05_i3','D05_i4','D05_i5','D05_i6','D05_i7','D05_i8','D05_i9','D05_i10','D05_i11','D05_i12','D05_i13','D05_i14','D05_i15','D05_i16','D05_i17','score_grade','result','t_fb','t_sign','t_sign_date'],
+  // ★ 2026-08-20：D05 刪除原第5項後改為 16 評分 + 5
+  D05: ['D05_i1','D05_i2','D05_i3','D05_i4','D05_i5','D05_i6','D05_i7','D05_i8','D05_i9','D05_i10','D05_i11','D05_i12','D05_i13','D05_i14','D05_i15','D05_i16','score_grade','result','t_fb','t_sign','t_sign_date'],
   // D02 DOPS:呼吸器技術操作(Neonatal) — 老師端 (20 評分 + 5)
   D02: ['D02_i1','D02_i2','D02_i3','D02_i4','D02_i5','D02_i6','D02_i7','D02_i8','D02_i9','D02_i10','D02_i11','D02_i12','D02_i13','D02_i14','D02_i15','D02_i16','D02_i17','D02_i18','D02_i19','D02_i20','score_grade','result','t_fb','t_sign','t_sign_date'],
 };
@@ -11644,30 +11645,34 @@ const DOPS_DATA={
   },
   D05:{
     topic:'小兒非侵襲性呼吸器(NIV) BiPAP',
-    machineOpts:['Bubble CPAP','Trilogy','Astral'],
+    /* ★ 2026-08-20 內容修訂：
+       · 機型選項移除 Bubble CPAP（該機型已另有 D01 專用評核表），保留 Trilogy / Astral
+       · 第3、4項改為 BiPAP 專屬敘述
+       · 原第5項「非侵襲性呼吸器常見的種類」刪除，其後編號往前遞補 → 全表 17 項改為 16 項
+       · 第7~11、16、17項（原編號）改為 BiPAP 專屬用物、操作與消毒方式 */
+    machineOpts:['Trilogy','Astral'],
     groups:[
       {hd:'NIV使用前',items:[
         '1. 確認醫囑',
         '2. 確認病人(兩種方式)並解釋',
-        '3. 能說出使用NIV的目的',
-        '4. 能說出使用NIV的適應症、禁忌症、合併症',
-        '5. 非侵襲性呼吸器常見的種類',
-        '6. 技術執行前應洗手',
-        '7. 準備用物：\n聽診器、BiPAP或oxygen blender with flow meter、拋棄式管路、Nasal prong、Auto feeding、無菌蒸餾水、子母膠帶、棉線',
-        '8. 如何選擇nasal prong size或面罩',
-        '9. 正確操作組裝管路',
-        '10. 評估治療前生命徵象、呼吸音、呼吸型態、血液氣體分報告、血氧飽和度',
+        '3. 能說出使用NIV的目的\n(例如:改善氣體交換、減少呼吸做功、重新膨脹塌陷肺泡、減少插管需求等)',
+        '4. 能說出使用NIV的適應症、禁忌症、合併症\n(例如:急性呼吸衰竭(細支氣管炎、哮吼、氣喘、RDS、拔管後支持等)、慢性呼吸衰竭(神經肌肉疾病、阻塞型睡眠呼吸中止症)、解剖結構異常等/未經引流的氣胸或縱隔腔氣腫、無自主呼吸或呼吸過於微弱、上氣道完全阻塞、近期接受過上消化道或氣道重建手術、氣道分泌物極多且濃稠、顏面嚴重創傷或燒傷等/皮膚與壓傷、氣體漏氣與氣壓傷、腹脹、靜脈回流減少等)',
+        '5. 技術執行前應洗手',
+        '6. 準備用物：\n聽診器、BiPAP、重複性管路、Auto feeding、無菌蒸餾水、面罩介面、氧氣雙頭管',
+        '7. 如何選擇BiPAP面罩介面',
+        '8. 正確操作組裝管路，並測試機器運作正常',
+        '9. 評估治療前生命徵象、呼吸音、呼吸型態、ABG報告、血氧飽和濃度',
       ]},
       {hd:'NIV使用中',items:[
-        '11. 調整適當的PEEP值，觀察氣泡產生；或調整適當NIV設定',
-        '12. 評估：\n聽診呼吸音、病患呼吸型態是否和呼吸器同步、生命徵象、ABG',
-        '13. 正確紀錄',
-        '14. 監測：\n氣道壓力或管路埋入水瓶深度、漏氣、鼻中膈及鼻孔週為膚色發紅、壓瘡、管路扭曲或堵塞、積水',
-        '15. 能說出使用非侵襲呼吸器衰竭情形',
+        '10. 調整適當NIV設定(含:模式選擇、初始設定、警報設定)',
+        '11. 評估：\n聽診呼吸音、病患呼吸型態是否和呼吸器同步、生命徵象、ABG',
+        '12. 正確紀錄',
+        '13. 監測：\n氣道壓力或管路埋入水瓶深度、漏氣、鼻中膈及鼻孔週為膚色發紅、壓瘡、管路扭曲或堵塞、積水',
+        '14. 能說出使用非侵襲呼吸器衰竭情形',
       ]},
       {hd:'NIV使用後',items:[
-        '16. 拋棄式管路，丟置感染性垃圾桶',
-        '17. 儀器面板及表面以漂白水布擦拭，Nasal prong以2顆漂白錠浸泡30分鐘，送EO消毒',
+        '15. 重複性管路及面罩介面，丟置重消桶以巴斯德消毒法消毒',
+        '16. 儀器面板及表面以漂白水布擦拭',
       ]},
     ]
   },
