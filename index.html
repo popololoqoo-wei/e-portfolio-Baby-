@@ -8033,7 +8033,7 @@ function buildPDFContent(id,f,d,val,row,section,studentName,studentSchool,chk){
     html+='<div class="section-head">團隊照護需求討論</div>';
     html+='<table>';
     html+=pdfR('1. 身為呼吸治療師，我的專業可以提供這個病人：',val('c1')||'—',false);
-    html+=pdfR('2. 我會請求＿師，協助我以下事項：',val('c2')||'—',false);
+    html+=pdfR('2. 我會請求＿師，協助我以下事項，以幫助團隊運作更加完善：',val('c2')||'—',false);
     html+=pdfR('3. 我可以幫助其他專業成員的部分是：',val('c3')||'—',false);
     html+='</table>';
 
@@ -11341,7 +11341,7 @@ function buildF09(f,d,canT,fkey,canS){
     <div class="field"><label>參加職類</label><div class="check-group">${profs.map(v=>`<label class="check-item"><input type="checkbox" ${d['prof_'+v]?'checked':''} onchange="APP.formData['${fid}']=APP.formData['${fid}']||{};APP.formData['${fid}']['prof_${v}']=this.checked" style="accent-color:var(--gold);"> ${v}</label>`).join('')}</div></div>`);
   h+=`<div class="card"><div class="card-head"><div class="card-head-title">團隊照護需求討論</div><span class="s-badge" style="background:rgba(255,255,255,.25);color:#fff;border-color:rgba(255,255,255,.4);">學生填寫</span></div><div class="card-body">
     <div class="field"><label>1. 身為呼吸治療師，我的專業可以提供這個病人：</label>${ta(f.id,'c1',3,false)}</div>
-    <div class="field"><label>2. 我會請求＿師，協助我以下事項：</label>${ta(f.id,'c2',3,false)}</div>
+    <div class="field"><label>2. 我會請求＿師，協助我以下事項，以幫助團隊運作更加完善：</label>${ta(f.id,'c2',3,false)}</div>
     <div class="field"><label>3. 我可以幫助其他專業成員的部分是：</label>${ta(f.id,'c3',3,false)}</div>
   </div></div>`;
   h+=`<div class="card"><div class="card-head"><div class="card-head-title">心得與回饋</div></div><div class="card-body">
