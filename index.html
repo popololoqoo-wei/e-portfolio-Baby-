@@ -8076,11 +8076,11 @@ function buildPDFContent(id,f,d,val,row,section,studentName,studentSchool,chk){
     html+='<div class="section-head">個人化學習計畫（學生填寫）</div>';
     html+='<table>';
     html+=pdfR('學習目標（你想學什麼？）',val('goal')||'—',false);
-    html+=pdfR('學習動機',val('motivation')||'—',false);
-    html+=pdfR('學習策略與資源',val('strategy')||'—',false);
+    html+=pdfR('學習動機（什麼事件誘發你想要學這個？）',val('motivation')||'—',false);
+    html+=pdfR('學習策略與資源（你需要做什麼？需要誰的幫忙或設備？）',val('strategy')||'—',false);
     html+=pdfR('可能遭遇的困難',val('difficulty')||'—',false);
-    html+=pdfR('評估內容與指標',val('criteria')||'—',false);
-    html+=pdfR('預計時程',val('timeline')||'—',false);
+    html+=pdfR('評估內容與指標（證明你自己有達標）',val('criteria')||'—',false);
+    html+=pdfR('預計時程（學習多久達成？）',val('timeline')||'—',false);
     html+='</table>';
 
     // ── 指導教師回饋（網頁順序：回饋 → 老師簽名 → 老師簽名日期 → 建議追蹤日期）──
@@ -11385,12 +11385,12 @@ function buildF11(f,d,canT,fkey,canS){
   const fid=fkey||f.id;
   if(canS===undefined)canS=true;
   let h=basicInfoCard(fid,d,'');
-  const flds=[['goal','學習目標（你想學什麼？）',4],['motivation','學習動機',3],['strategy','學習策略與資源',3],['difficulty','可能遭遇的困難',2],['criteria','評估內容與指標',3],['timeline','預計時程',2]];
+  const flds=[['goal','學習目標（你想學什麼？）',4],['motivation','學習動機（什麼事件誘發你想要學這個？）',3],['strategy','學習策略與資源（你需要做什麼？需要誰的幫忙或設備？）',3],['difficulty','可能遭遇的困難',2],['criteria','評估內容與指標（證明你自己有達標）',3],['timeline','預計時程（學習多久達成？）',2]];
   // ★ 修正：傳入 fid（含學號的 formKey）而非 f.id（裸 id），
   //   否則 ta() 會讀寫 APP.formData['F11'](裸 id)，但 openForm 流程中會主動刪除裸 id，
   //   導致使用者切到別張表單再回來時，剛剛填的內容消失。
   h+=`<div class="card"><div class="card-head"><div class="card-head-title">個人化學習計畫（學生填寫）</div></div><div class="card-body">
-    ${flds.map(([k,l,r])=>`<div class="field"><label>${l}</label>${ta(fid,k,r,false)}</div>`).join('')}
+    ${flds.map(([k,l,r])=>`<div class="field"><label>${l}</label>${k==='timeline'?`<input type="date" value="${((d['timeline']||'').split(' - ')[0]||'').replace(/\//g,'-')}" data-fid="${fid}" data-key="timeline" onchange="saveDraftField('${fid}','timeline',this.value)" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r);background:#fff;color:var(--ink);font-size:13px;">`:ta(fid,k,r,false)}</div>`).join('')}
   </div></div>`;
   h+=`<div class="card"><div class="card-head"><div class="card-head-title">實習總指導教師回饋<span class="t-badge">老師</span></div></div><div class="card-body">
     <div class="field">${ta(fid,'t_fb',4,!canT)}</div>
