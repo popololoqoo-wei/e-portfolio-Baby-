@@ -11320,7 +11320,7 @@ function buildF08(f,d,canT,fkey,canS){
     ${[['生理(Body)','疾病之檢查、檢驗、診斷與治療'],['心理(Mind)','對疾病的認知、自我照護的技能與態度'],['靈性(Spirit)','信仰、心靈關懷，精神上的支持與安慰'],['社會(Social)','家人協助、轉介服務、出院準備']].map(([t,hint])=>`<div class="field"><label>${t}<span style="font-size:10px;color:var(--ink3);margin-left:4px;">${hint}</span></label>${ta(fid,'discuss_'+t[0],2,false)}</div>`).join('')}
   </div></div>`;
   h+=`<div class="card"><div class="card-head"><div class="card-head-title">跨團隊照護<span style="font-size:11px;font-weight:600;color:#FEF3C7;background:rgba(245,158,11,.35);padding:2px 8px;border-radius:10px;margin-left:8px;border:1px solid rgba(254,243,199,.5);">⚠ 若無建議，請填寫「無」</span></div></div><div class="card-body">
-    ${[1,2,3].map(i=>`<div class="g2"><div class="field"><label>團隊職類 ${i}</label>${fi(fid,'team_type_'+i,'text',false)}</div><div class="field"><label>照護重點 ${i}</label>${fi(fid,'team_care_'+i,'text',false)}</div></div>`).join('')}
+    ${[1,2,3].map(i=>`<div class="g2"><div class="field"><label>團隊職類 ${i}</label>${ta(fid,'team_type_'+i,2,false)}</div><div class="field"><label>照護重點 ${i}</label>${ta(fid,'team_care_'+i,2,false)}</div></div>`).join('')}
   </div></div>`;
   h+=`<div class="card"><div class="card-head"><div class="card-head-title">學員心得與老師回饋</div></div><div class="card-body">
     <div class="field"><label>學員學習心得</label>${ta(fid,'s_feeling',3,false)}</div>
