@@ -8482,16 +8482,17 @@ function buildPDFContent(id,f,d,val,row,section,studentName,studentSchool,chk){
 
   // F13 書面個案報告評分表
   if(id==='F13'){
+    /* ★ 說明文字比照重症版；配分維持小兒原設定 */
     var f13items=[
-      ['s1','一、整體架構',5],
-      ['s2a','（一）前言',5],
-      ['s2b','（二）評估（含個案簡介）',15],
-      ['s2c','（三）問題確立',10],
-      ['s2d','（四）治療計畫與措施',15],
-      ['s2e','（五）結果評值',10],
-      ['s2f','（六）文獻查證',25],
-      ['s2g','（七）結論與討論',10],
-      ['s2h','（八）參考資料',5]
+      ['s1','一、整體架構',5,'文章結構清晰、文辭通順正確，整體架構表現出呼吸照護之思考過程。'],
+      ['s2a','（一）前言',5,'明確說明此個案選擇之動機與重要性，與呼吸照護過程具有之獨特意義。'],
+      ['s2b','（二）評估（含個案簡介）',15,'內容包括病人基本資料或病人簡介、現在病史、住院治療經過、檢查檢驗報告、呼吸照護紀錄等相關資料及分析，資料具主客觀性及時效性，能提供病人整體性及持續性的評估。'],
+      ['s2c','（三）問題確立',10,'藉由評估，確立客觀、具時效性與正確性之呼吸照護問題。'],
+      ['s2d','（四）治療計畫與措施',15,'根據呼吸照護問題，確立具體之呼吸照護目標，提供具實證、一致與適當之呼吸照護措施。呼吸照護措施需：具體、周詳、具個別性與可行性，與文獻查證內容有連貫性。'],
+      ['s2e','（五）結果評值',10,'針對呼吸治療目標與措施，作出具體且有效之評值。'],
+      ['s2f','（六）文獻查證',25,'文獻查證敘述有系統、有組織與條理；文獻內容與個案疾病、呼吸照護問題、實行措施有相關性；內文若引用文獻需標註文獻出處。'],
+      ['s2g','（七）結論與討論',10,'提出個人觀點論述、具體的後續照顧計劃，及此次照護之限制與困難，報告成果對日後呼吸照護實務工作有具體建議。'],
+      ['s2h','（八）參考資料',5,'參考資料與內文引用近五年內中英文期刊文獻資料，能與全文連貫，具一致性與適切性。']
     ];
     // ── 基本資料 ──
     html+='<div class="section-head">基本資料</div>';
@@ -8513,8 +8514,8 @@ function buildPDFContent(id,f,d,val,row,section,studentName,studentSchool,chk){
       if(sc>it[2])sc=it[2]; if(sc<0)sc=0;
       f13total+=sc;
       html+='<tr>';
-      html+='<td style="padding:5px 8px;border:1px solid #DDD;background:#FFF5F5;font-size:10pt;">'+it[1]+'</td>';
-      html+='<td style="text-align:center;border:1px solid #DDD;background:#FAFAF8;font-size:10pt;color:var(--ink3);">'+it[2]+'</td>';
+      html+='<td style="padding:5px 8px;border:1px solid #DDD;background:#FFF5F5;font-size:10pt;"><div style="font-weight:600;">'+it[1]+'</div>'+(it[3]?'<div style="font-size:8.5pt;line-height:1.5;color:#666;margin-top:2px;">'+it[3]+'</div>':'')+'</td>';
+      html+='<td style="text-align:center;border:1px solid #DDD;background:#FAFAF8;font-size:10pt;color:var(--ink3);vertical-align:middle;">'+it[2]+'</td>';
       html+='<td style="text-align:center;border:1px solid #DDD;background:#FFF5F5;font-size:12pt;font-weight:700;color:#C0392B;">'+sc+'</td>';
       html+='</tr>';
     });
@@ -11438,7 +11439,19 @@ function buildF12(f,d,canT,fkey,canS){
 function buildF13(f,d,canT,fkey,canS){
   const fid=fkey||f.id;
   if(canS===undefined)canS=true;
-  const items=[['s1','一、整體架構',5],['s2a','（一）前言',5],['s2b','（二）評估（含個案簡介）',15],['s2c','（三）問題確立',10],['s2d','（四）治療計畫與措施',15],['s2e','（五）結果評值',10],['s2f','（六）文獻查證',25],['s2g','（七）結論與討論',10],['s2h','（八）參考資料',5]];
+  /* ★ 說明文字比照重症版；配分維持小兒原設定
+     （5/5/15/10/15/10/25/10/5，合計 100 分） */
+  const items=[
+    ['s1','一、整體架構',5,'文章結構清晰、文辭通順正確，整體架構表現出呼吸照護之思考過程。'],
+    ['s2a','（一）前言',5,'明確說明此個案選擇之動機與重要性，與呼吸照護過程具有之獨特意義。'],
+    ['s2b','（二）評估（含個案簡介）',15,'內容包括病人基本資料或病人簡介、現在病史、住院治療經過、檢查檢驗報告、呼吸照護紀錄等相關資料及分析，資料具主客觀性及時效性，能提供病人整體性及持續性的評估。'],
+    ['s2c','（三）問題確立',10,'藉由評估，確立客觀、具時效性與正確性之呼吸照護問題。'],
+    ['s2d','（四）治療計畫與措施',15,'根據呼吸照護問題，確立具體之呼吸照護目標，提供具實證、一致與適當之呼吸照護措施。呼吸照護措施需：具體、周詳、具個別性與可行性，與文獻查證內容有連貫性。'],
+    ['s2e','（五）結果評值',10,'針對呼吸治療目標與措施，作出具體且有效之評值。'],
+    ['s2f','（六）文獻查證',25,'文獻查證敘述有系統、有組織與條理；文獻內容與個案疾病、呼吸照護問題、實行措施有相關性；內文若引用文獻需標註文獻出處。'],
+    ['s2g','（七）結論與討論',10,'提出個人觀點論述、具體的後續照顧計劃，及此次照護之限制與困難，報告成果對日後呼吸照護實務工作有具體建議。'],
+    ['s2h','（八）參考資料',5,'參考資料與內文引用近五年內中英文期刊文獻資料，能與全文連貫，具一致性與適切性。']
+  ];
   let h=basicInfoCard(fid,d,'');
 
   // ── 個案報告題目（學生填寫）──
@@ -11447,7 +11460,7 @@ function buildF13(f,d,canT,fkey,canS){
   h+='</div></div>';
 
   h+=`<div class="card"><div class="card-head"><div class="card-head-title">評分項目（滿分100分）<span class="t-badge">老師評分</span></div></div><div class="card-body">`;
-  items.forEach(([key,label,max])=>{
+  items.forEach(([key,label,max,desc])=>{
     // ★ 未填時 value 留空,不要預設 "0",否則 autoSaveDraft 會把 "0" 寫進草稿,
     //   造成「點進表單什麼都沒做就被誤判為草稿中」。
     const rawVal=d[key];
@@ -11455,9 +11468,12 @@ function buildF13(f,d,canT,fkey,canS){
     // 用通用驗證函式：超分時跳警示 toast、視覺紅色閃一下、自動夾鉗到 0~max
     const labelEsc = String(label).replace(/'/g,"\\'");
     const oc=`validateScoreInput(this,'${fid}','${key}',${max},'${labelEsc}',calcF13Score)`;
-    h+=`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border2);">
-      <span style="flex:1;font-size:12px;">${label}（滿分${max}分）</span>
-      <input type="number" min="0" max="${max}" value="${cur}" ${!canT?'disabled':''} data-fid="${fid}" data-key="${key}" data-teacher="1" oninput="${oc}" onchange="${oc}" style="width:72px;padding:6px 8px;border:1px solid var(--border);border-radius:var(--r);font-size:13px;background:${!canT?'var(--cream)':'#fff'};color:var(--ink);">
+    h+=`<div style="display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px solid var(--border2);">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:600;color:var(--ink);">${label}（滿分${max}分）</div>
+        ${desc?`<div style="font-size:11.5px;line-height:1.7;color:var(--ink3);margin-top:4px;">${desc}</div>`:''}
+      </div>
+      <input type="number" min="0" max="${max}" value="${cur}" ${!canT?'disabled':''} data-fid="${fid}" data-key="${key}" data-teacher="1" oninput="${oc}" onchange="${oc}" style="flex:0 0 auto;width:72px;padding:6px 8px;margin-top:1px;border:1px solid var(--border);border-radius:var(--r);font-size:13px;background:${!canT?'var(--cream)':'#fff'};color:var(--ink);">
     </div>`;
   });
   h+=`</div></div>`;
