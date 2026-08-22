@@ -3748,12 +3748,14 @@ const REQUIRED_STUDENT_FIELDS = {
   F04M: ['s_name','school','s_date','intern_cat','bed','pt_name','gender','birth_date','diagnosis','rt_ind','vent_type','medical_focus','rt_plan','t_fb','t_sign','t_sign_date','s_sign','s_sign_date'],
   F04S: ['s_name','school','s_date','intern_cat','bed','pt_name','gender','birth_date','diagnosis','rt_ind','vent_type','medical_focus','rt_plan','t_fb','t_sign','t_sign_date','s_sign','s_sign_date'],
   // F06 CbD
-  F06M: ['s_name','school','intern_cat','s_date','complexity','case_dx',
+  F06M: ['s_name','school','intern_cat','s_date','complexity','case_dx','t_level',
     'f06_0','f06_1','f06_2','f06_3','f06_4','f06_5','f06_6',
-    's_feeling','t_good','s_improve','t_improve','s_sign','s_sign_date','t_sign','t_sign_date'],
-  F06S: ['s_name','school','intern_cat','s_date','complexity','case_dx',
+    's_feeling','t_good','s_improve','t_improve','s_satisfy','t_satisfy','obs_min','fb_min',
+    's_sign','s_sign_date','t_sign','t_sign_date'],
+  F06S: ['s_name','school','intern_cat','s_date','complexity','case_dx','t_level',
     'f06_0','f06_1','f06_2','f06_3','f06_4','f06_5','f06_6',
-    's_feeling','t_good','s_improve','t_improve','s_sign','s_sign_date','t_sign','t_sign_date'],
+    's_feeling','t_good','s_improve','t_improve','s_satisfy','t_satisfy','obs_min','fb_min',
+    's_sign','s_sign_date','t_sign','t_sign_date'],
   // F07 360度
   F07M: ['s_name','school','intern_cat','s_date',
     'f07_0','f07_1','f07_2','f07_3','f07_4','f07_5','f07_6',
@@ -3874,6 +3876,8 @@ const TEACHER_EXACT_FIELDS = new Set([
   'q_basic','q_self','q_progress','q_detail','q_t_sign','q_feeling','q_t_fb','q_all_sign',
   // ── F15 加分 ──
   'bonus',
+  // ── F06 CbD 老師職級／滿意度／觀察與回饋時間 ──
+  't_level','t_satisfy','obs_min','fb_min',
   // ── F13 書面個案分項評分(由老師評) ──
   's1','s2a','s2b','s2c','s2d','s2e','s2f','s2g','s2h',
 ]);
@@ -5302,9 +5306,10 @@ function applyCardColors(){
     'director_fb','peer_good','peer_suggest','peer_sign','host_sign','host_date','host_note',
     'result','score','score_grade','epa_level','follow_date',
     'q_basic','q_self','q_progress','q_detail','q_t_sign','q_feeling','q_t_fb','q_all_sign',
-    'bonus','s1','s2a','s2b','s2c','s2d','s2e','s2f','s2g','s2h'];
+    'bonus','s1','s2a','s2b','s2c','s2d','s2e','s2f','s2g','s2h',
+    't_level','t_satisfy','obs_min','fb_min'];
   // 學生欄位 key 清單（僅學生會填的）
-  var S_KEYS=['s_sign','s_sign_date','s_fb','s_comment','s_feeling','s_improve','s_good','s_name',
+  var S_KEYS=['s_sign','s_sign_date','s_fb','s_comment','s_feeling','s_improve','s_satisfy','s_good','s_name',
     's_date','school','intern_cat','bed','pt_name','gender','birth_date','diagnosis','rt_ind',
     'vent_type','medical_focus','rt_plan','goal','motivation','strategy','difficulty','criteria',
     'timeline','env_review','teacher_review','self_review'];
@@ -5655,7 +5660,8 @@ function lockTeacherFields(){
     't_title','t_note','t_date','director_fb','peer_good','peer_suggest','peer_sign','host_sign',
     'host_sign_date','host_date','host_note','result','score','score_grade','epa_level','follow_date',
     'q_basic','q_self','q_progress','q_detail','q_t_sign','q_feeling','q_t_fb','q_all_sign',
-    'bonus','s1','s2a','s2b','s2c','s2d','s2e','s2f','s2g','s2h'];
+    'bonus','s1','s2a','s2b','s2c','s2d','s2e','s2f','s2g','s2h',
+    't_level','t_satisfy','obs_min','fb_min'];
   directLockKeys.forEach(function(k){
     mc.querySelectorAll('[data-key="'+k+'"]').forEach(function(el){
       if(el.hasAttribute('readonly'))return;
@@ -6282,7 +6288,8 @@ function unlockTeacherFieldsInDOM(){
     't_title','t_note','t_date','director_fb','peer_good','peer_suggest','peer_sign','host_sign',
     'host_sign_date','host_date','host_note','result','score','score_grade','epa_level','follow_date',
     'q_basic','q_self','q_progress','q_detail','q_t_sign','q_feeling','q_t_fb','q_all_sign',
-    'bonus','s1','s2a','s2b','s2c','s2d','s2e','s2f','s2g','s2h'];
+    'bonus','s1','s2a','s2b','s2c','s2d','s2e','s2f','s2g','s2h',
+    't_level','t_satisfy','obs_min','fb_min'];
   directKeys.forEach(function(k){
     mc.querySelectorAll('[data-key="'+k+'"]').forEach(function(el){
       if(el.hasAttribute('readonly'))return;
@@ -7397,6 +7404,8 @@ function getMissingRequiredFields(id){
     'complexity':'技術複雜度','case_dx':'主診斷','diagnosis':'診斷',
     'result':'評量結果（合格/不合格）','score_grade':'評分等級','epa_level':'EPA 信賴等級',
     'bonus':'加分項目','follow_date':'追蹤日期',
+    't_level':'老師職級','t_satisfy':'老師滿意度','s_satisfy':'學員滿意度',
+    'obs_min':'直接觀察時間（分鐘）','fb_min':'回饋時間（分鐘）',
     '__prof_any':'參加職類（至少一項）','__team_first':'跨團隊照護第一組','__sc_any':'臨床情境（至少一項）',
     'q_basic':'基本資料查核','q_self':'自評查核','q_progress':'進度查核','q_detail':'細項查核',
     'q_t_sign':'老師查核簽名','q_feeling':'心得查核','q_t_fb':'老師查核回饋','q_all_sign':'總簽名',
@@ -7560,6 +7569,8 @@ function downloadPDF(id){
     'bed':'病床號','pt_name':'病人名','gender':'性別','birth_date':'出生日期',
     'diagnosis':'診斷','case_dx':'主診斷','medical_focus':'醫療重點','rt_plan':'治療計畫',
     's_feeling':'學習心得','s_fb':'學生回饋','s_improve':'自覺加強',
+    't_level':'老師職級','t_satisfy':'老師滿意度','s_satisfy':'學員滿意度',
+    'obs_min':'直接觀察時間（分鐘）','fb_min':'回饋時間（分鐘）',
     'goal':'學習目標','motivation':'學習動機','strategy':'學習策略',
     'env_review':'環境評值','complexity':'病情複雜度',
     'epa_level':'可信賴等級','result':'評量結果',
@@ -7671,6 +7682,8 @@ const FIELD_LABELS={
   'bed':'病床號','pt_name':'病人名','gender':'性別','birth_date':'出生日期',
   'diagnosis':'診斷','case_dx':'主診斷','medical_focus':'醫療重點','rt_plan':'治療計畫',
   's_feeling':'學習心得','s_fb':'學生回饋','s_improve':'自覺加強','s_suggest':'其他建議',
+  't_level':'老師職級','t_satisfy':'老師滿意度','s_satisfy':'學員滿意度',
+  'obs_min':'直接觀察時間（分鐘）','fb_min':'回饋時間（分鐘）',
   'goal':'學習目標','motivation':'學習動機','strategy':'學習策略',
   'env_review':'環境評值','complexity':'病情複雜度','case_title':'個案標題',
   'epa_level':'可信賴等級','result':'評量結果','score_grade':'評分等級',
@@ -8242,6 +8255,7 @@ function buildPDFContent(id,f,d,val,row,section,studentName,studentSchool,chk){
     html+=pdfR('主診斷',val('case_dx')||val('diagnosis'),false);
     html+='</table>';
     html+='<div class="section-head">評量項目（1-9分；1-3=有待加強，4-6=合乎標準，7-9=優良；UGY≥5合格）</div>';
+    html+='<table>'+pdfR('老師職級',val('t_level'),true)+'</table>';
     html+='<table><tr><th style="background:#1A3A5C;color:#fff;padding:5px;border:1px solid #DDD;text-align:left;">評量項目</th><th style="background:#1A3A5C;color:#fff;padding:5px;border:1px solid #DDD;width:80px;text-align:center;">評分</th></tr>';
     items.forEach(function(item,i){
       var score=val('f06_'+i);
@@ -8260,6 +8274,7 @@ function buildPDFContent(id,f,d,val,row,section,studentName,studentSchool,chk){
     html+='<table>';
     html+=pdfR('學員學習心得',val('s_feeling'),false);
     html+=pdfR('自覺可再加強',val('s_improve'),false);
+    html+=pdfR('學員對此次評估的滿意度',val('s_satisfy'),false);
     html+=pdfR('學生簽名',val('s_sign'),false);
     html+=pdfR('學生簽名日期',formatSignTs(val('s_sign_date')),false);
     html+='</table>';
@@ -8268,6 +8283,9 @@ function buildPDFContent(id,f,d,val,row,section,studentName,studentSchool,chk){
     html+='<table>';
     html+=pdfR('表現良好項目',val('t_good'),true);
     html+=pdfR('建議加強項目',val('t_improve'),true);
+    html+=pdfR('老師對此次評估的滿意度',val('t_satisfy'),true);
+    html+=pdfR('直接觀察時間',val('obs_min')?val('obs_min')+' 分鐘':'',true);
+    html+=pdfR('回饋時間',val('fb_min')?val('fb_min')+' 分鐘':'',true);
     html+=pdfR('老師簽名',val('t_sign'),true);
     html+=pdfR('老師簽名日期',formatSignTs(val('t_sign_date')),true);
     html+='</table>';
@@ -11093,10 +11111,27 @@ function buildCbD(f,d,canT,fkey,canS){
     var oc="APP.formData['"+fid+"']=(APP.formData['"+fid+"']||{});APP.formData['"+fid+"']['complexity']='"+v+"'";
     return '<label class="check-item"><input type="radio" name="f06_cx_'+fid+'" '+chk+' onchange="'+oc+'" style="accent-color:var(--gold);"> '+v+'</label>';
   }).join('');
+  /* ── 通用單選群組產生器（老師職級／雙方滿意度共用）──
+     isT=true 時加上 data-teacher="1"，學生視角會自動鎖定＋淡化 */
+  function cbdRadios(groupName,key,opts,isT){
+    return opts.map(function(v){
+      var chk = (d[key]===v) ? ' checked' : '';
+      var dis = (isT && !canT) ? ' disabled' : '';
+      var tAttr = isT ? ' data-teacher="1"' : '';
+      var oc = "saveDraftField('"+fid+"','"+key+"',this.value)";
+      return '<label class="check-item"><input type="radio" name="'+groupName+'_'+fid+'" value="'+v+'"'
+           + ' data-fid="'+fid+'" data-key="'+key+'"'+tAttr+chk+dis
+           + ' onchange="'+oc+'" style="accent-color:'+(isT?'var(--gold)':'var(--primary)')+';"> '+v+'</label>';
+    }).join('');
+  }
+  var SATISFY_OPTS=['非常滿意','滿意','普通','不滿意','非常不滿意'];
   // CbD 加入 basicInfoCard（含實習學校、日期、類別）
   let h=basicInfoCard(fid,d,'<div class="field"><label>主診斷</label>'+fi(fid,'case_dx','text',false)+'</div><div class="field"><label>病情複雜度</label><div class="check-group">'+cxBtns+'</div></div>');
   // 評量說明列
   h+='<div class="card"><div class="card-head"><div class="card-head-title">評量項目<span class="t-badge">老師評分</span></div></div><div class="card-body" style="overflow-x:auto;">';
+  // 老師職級（老師勾選）
+  h+='<div class="field" style="margin-bottom:10px;"><label>老師職級<span class="t-badge">老師</span></label>'
+   + '<div class="check-group">'+cbdRadios('f06_lv','t_level',['RRT1','RRT2','RRT3'],true)+'</div></div>';
   h+='<div style="background:#EEF2F8;border-radius:var(--r);padding:8px 12px;margin-bottom:8px;font-size:11px;color:var(--blue);">📊 評分標準：<strong>1～3分 = 有待加強</strong>　<strong>4～6分 = 合乎標準</strong>　<strong>7～9分 = 優良</strong>　UGY ≥ 5分合格</div>';
   h+='<table class="rating-table"><tr><th style="text-align:left;min-width:140px;">評量項目</th>';
   // 分組標題
@@ -11124,6 +11159,8 @@ function buildCbD(f,d,canT,fkey,canS){
   h+='<div class="s-block-title">📝 學生填寫</div>';
   h+='<div class="field"><label>學員學習心得（不限字數）</label>'+ta(fid,'s_feeling',5,false)+'</div>';
   h+='<div class="field"><label>自覺可再加強（不限字數）</label>'+ta(fid,'s_improve',5,false)+'</div>';
+  h+='<div class="field"><label>學員對此次評估的滿意度</label>'
+   + '<div class="check-group">'+cbdRadios('f06_ssat','s_satisfy',SATISFY_OPTS,false)+'</div></div>';
   h+=studentSignRow(fid,'s_sign');
   h+='</div>';
   // 老師回饋區（含老師簽名）
@@ -11131,6 +11168,12 @@ function buildCbD(f,d,canT,fkey,canS){
   h+='<div class="t-block-title">✏️ 老師填寫</div>';
   h+='<div class="field"><label>表現良好項目（不限字數）<span class="t-badge">老師</span></label>'+ta(fid,'t_good',5,!canT)+'</div>';
   h+='<div class="field"><label>建議加強項目（不限字數）<span class="t-badge">老師</span></label>'+ta(fid,'t_improve',5,!canT)+'</div>';
+  h+='<div class="field"><label>老師對此次評估的滿意度<span class="t-badge">老師</span></label>'
+   + '<div class="check-group">'+cbdRadios('f06_tsat','t_satisfy',SATISFY_OPTS,true)+'</div></div>';
+  h+='<div class="g2">'
+   + '<div class="field"><label>直接觀察時間（分鐘）<span class="t-badge">老師</span></label>'+fi(fid,'obs_min','number',!canT,'分鐘')+'</div>'
+   + '<div class="field"><label>回饋時間（分鐘）<span class="t-badge">老師</span></label>'+fi(fid,'fb_min','number',!canT,'分鐘')+'</div>'
+   + '</div>';
   h+=teacherSignRow(fid,'t_sign',canT);
   h+='</div>';
   h+='</div></div>';
