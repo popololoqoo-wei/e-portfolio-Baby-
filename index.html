@@ -3750,11 +3750,11 @@ const REQUIRED_STUDENT_FIELDS = {
   F04M: ['s_name','school','s_date','intern_cat','bed','pt_name','gender','birth_date','diagnosis','rt_ind','vent_type','medical_focus','rt_plan','t_fb','t_sign','t_sign_date','s_sign','s_sign_date'],
   F04S: ['s_name','school','s_date','intern_cat','bed','pt_name','gender','birth_date','diagnosis','rt_ind','vent_type','medical_focus','rt_plan','t_fb','t_sign','t_sign_date','s_sign','s_sign_date'],
   // F06 CbD
-  F06M: ['s_name','school','intern_cat','s_date','complexity','case_dx','t_level',
+  F06M: ['s_name','school','intern_cat','s_date','bed','pt_name','complexity','case_dx','t_level',
     'f06_0','f06_1','f06_2','f06_3','f06_4','f06_5','f06_6',
     's_feeling','t_good','s_improve','t_improve','s_satisfy','t_satisfy','obs_min','fb_min',
     's_sign','s_sign_date','t_sign','t_sign_date'],
-  F06S: ['s_name','school','intern_cat','s_date','complexity','case_dx','t_level',
+  F06S: ['s_name','school','intern_cat','s_date','bed','pt_name','complexity','case_dx','t_level',
     'f06_0','f06_1','f06_2','f06_3','f06_4','f06_5','f06_6',
     's_feeling','t_good','s_improve','t_improve','s_satisfy','t_satisfy','obs_min','fb_min',
     's_sign','s_sign_date','t_sign','t_sign_date'],
@@ -8253,8 +8253,10 @@ function buildPDFContent(id,f,d,val,row,section,studentName,studentSchool,chk){
     html+=pdfR('實習學校',val('school'),false);
     html+=pdfR('實習日期',val('s_date'),false);
     html+=pdfR('實習類別',val('intern_cat'),false);
+    html+=pdfR('病床號',val('bed')||'—',false);
+    html+=pdfR('病人名',val('pt_name')||'—',false);
+    html+=pdfR('主診斷',val('case_dx')||val('diagnosis')||'—',false);
     html+=pdfR('病情複雜度',val('complexity'),false);
-    html+=pdfR('主診斷',val('case_dx')||val('diagnosis'),false);
     html+='</table>';
     html+='<div class="section-head">評量項目（1-9分；1-3=有待加強，4-6=合乎標準，7-9=優良；UGY≥5合格）</div>';
     html+='<table>'+pdfR('老師職級',val('t_level'),true)+'</table>';
@@ -11129,7 +11131,13 @@ function buildCbD(f,d,canT,fkey,canS){
   }
   var SATISFY_OPTS=['非常滿意','滿意','普通','不滿意','非常不滿意'];
   // CbD 加入 basicInfoCard（含實習學校、日期、類別）
-  let h=basicInfoCard(fid,d,'<div class="field"><label>主診斷</label>'+fi(fid,'case_dx','text',false)+'</div><div class="field"><label>病情複雜度</label><div class="check-group">'+cxBtns+'</div></div>');
+  let h=basicInfoCard(fid,d,
+      '<div class="g2">'
+    +   '<div class="field"><label>病床號</label>'+fi(fid,'bed','text',false)+'</div>'
+    +   '<div class="field"><label>病人名</label>'+fi(fid,'pt_name','text',false)+'</div>'
+    + '</div>'
+    + '<div class="field"><label>主診斷</label>'+ta(fid,'case_dx',2,false)+'</div>'
+    + '<div class="field"><label>病情複雜度</label><div class="check-group">'+cxBtns+'</div></div>');
   // 評量說明列
   h+='<div class="card"><div class="card-head"><div class="card-head-title">評量項目<span class="t-badge">老師評分</span></div></div><div class="card-body" style="overflow-x:auto;">';
   // 老師職級（老師勾選）
@@ -11317,7 +11325,7 @@ function buildF08(f,d,canT,fkey,canS){
   if(canS===undefined)canS=true;
   const profs=['西醫','牙醫','中醫','藥事','醫事放射','醫事檢驗','牙體技術','護理','營養','助產','聽力','語言','物理','職能','臨床心理','諮商心理','呼吸治療'];
   let h=basicInfoCard(fid,d,`<div class="field"><label>會議類別</label><div class="check-group">${['NICU全人會議','PICU全人會議'].map(v=>`<label class="check-item"><input type="radio" name="f08_cat" ${d['cat']===v?'checked':''} onchange="APP.formData['${fid}']=APP.formData['${fid}']||{};APP.formData['${fid}']['cat']='${v}'" style="accent-color:var(--gold);"> ${v}</label>`).join('')}</div></div>
-    <div class="field"><label>主診斷</label>${fi(fid,'diagnosis','text',false)}</div>
+    <div class="field"><label>主診斷</label>${ta(fid,'diagnosis',2,false)}</div>
     <div class="field"><label>參加職類</label><div class="check-group">${profs.map(v=>`<label class="check-item"><input type="checkbox" ${d['prof_'+v]?'checked':''} onchange="APP.formData['${fid}']=APP.formData['${fid}']||{};APP.formData['${fid}']['prof_${v}']=this.checked" style="accent-color:var(--gold);"> ${v}</label>`).join('')}</div></div>`);
   h+=`<div class="card"><div class="card-head"><div class="card-head-title">全人討論（包含2個以上面向）<span style="font-size:11px;font-weight:600;color:#FEF3C7;background:rgba(245,158,11,.35);padding:2px 8px;border-radius:10px;margin-left:8px;border:1px solid rgba(254,243,199,.5);">⚠ 若無建議，請填寫「無」</span></div></div><div class="card-body">
     ${[['生理(Body)','疾病之檢查、檢驗、診斷與治療'],['心理(Mind)','對疾病的認知、自我照護的技能與態度'],['靈性(Spirit)','信仰、心靈關懷，精神上的支持與安慰'],['社會(Social)','家人協助、轉介服務、出院準備']].map(([t,hint])=>`<div class="field"><label>${t}<span style="font-size:10px;color:var(--ink3);margin-left:4px;">${hint}</span></label>${ta(fid,'discuss_'+t[0],2,false)}</div>`).join('')}
@@ -11339,7 +11347,7 @@ function buildF09(f,d,canT,fkey,canS){
   const fid=fkey||f.id;
   if(canS===undefined)canS=true;
   const profs=['西醫','牙醫','中醫','藥事','醫事放射','醫事檢驗','牙體技術','護理','營養','助產','聽力','語言','物理','職能','臨床心理','諮商心理','呼吸治療'];
-  let h=basicInfoCard(fid,d,`<div class="field"><label>主診斷</label>${fi(f.id,'diagnosis','text',false)}</div>
+  let h=basicInfoCard(fid,d,`<div class="field"><label>主診斷</label>${ta(f.id,'diagnosis',2,false)}</div>
     <div class="field"><label>參加職類</label><div class="check-group">${profs.map(v=>`<label class="check-item"><input type="checkbox" ${d['prof_'+v]?'checked':''} onchange="APP.formData['${fid}']=APP.formData['${fid}']||{};APP.formData['${fid}']['prof_${v}']=this.checked" style="accent-color:var(--gold);"> ${v}</label>`).join('')}</div></div>`);
   h+=`<div class="card"><div class="card-head"><div class="card-head-title">團隊照護需求討論</div><span class="s-badge" style="background:rgba(255,255,255,.25);color:#fff;border-color:rgba(255,255,255,.4);">學生填寫</span></div><div class="card-body">
     <div class="field"><label>1. 身為呼吸治療師，我的專業可以提供這個病人：</label>${ta(f.id,'c1',3,false)}</div>
@@ -11740,7 +11748,7 @@ const DOPS_DATA={
   D02:{
     topic:'呼吸器技術操作(Neonatal)',
     extra:'呼吸器機型：□Drager系列(VN/V)　□Servo系列(N/U)',
-    machineOpts:['Drager系列(VN/V)','Servo系列(N/U)','AVEA','Newport E360'],
+    machineOpts:['Drager系列(VN/V)','Servo系列(N/U)'],
     groups:[
       {hd:'呼吸器使用前',items:[
         '1. 確認醫囑',
