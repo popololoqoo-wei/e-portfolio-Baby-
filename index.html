@@ -426,9 +426,11 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 .card-body{padding:1.2rem;}
 
 /* ─── 統一配色標準 ───
-   學生區（藍）：邊框 #93C5FD、底色 #F0F7FF、標題列漸層 #3B82F6→#1D4ED8（白字）
-   老師區（紅）：邊框 #FCA5A5、底色 #FFF5F5、標題列漸層 #DC2626→#991B1B（白字）
-   這個色組是全站基準，所有「學生／老師」區塊都遵循，避免深淺不一。 */
+   學生區（青綠 teal）：邊框 #A4E4DB、底色 #EAF8F5、標題列漸層 #0E9F8E→#0B7D70（白字）
+   老師區（琥珀 amber）：邊框 #FCD34D、底色 #FFFBEB、標題列漸層 #D97706→#B45309（白字）
+   這個色組是全站基準，所有「學生／老師」區塊都遵循，避免深淺不一。
+   ※ 老師端檢視時，學生欄位的唯讀標示（左側色條）也使用學生色 #0E9F8E，
+     以免畫面上出現第三種色系。 */
 
 /* 學生卡片 */
 .card.s-card{background:#EAF8F5;border:2px solid #A4E4DB;}
@@ -5882,21 +5884,21 @@ function lockStudentFields(){
       var parentLabel = el.closest('label');
       if(parentLabel && !parentLabel.hasAttribute('data-student-label-styled')){
         parentLabel.setAttribute('data-student-label-styled','1');
-        parentLabel.style.borderLeft = '3px solid #3B82F6';
-        parentLabel.style.background = 'rgba(59,130,246,0.06)';
+        parentLabel.style.borderLeft = '3px solid #0E9F8E';
+        parentLabel.style.background = 'rgba(14,159,142,0.07)';
         parentLabel.style.paddingLeft = '6px';
         parentLabel.style.borderRadius = '4px';
         parentLabel.title = _roTip;
       }
       if(isSelectOrDate){
-        el.style.borderLeft = '3px solid #3B82F6';
+        el.style.borderLeft = '3px solid #0E9F8E';
         el.style.background = 'var(--cream)';
       }
     } else {
       // text / number / textarea：用 readonly，老師仍可選取複製內容
       el.readOnly = true;
       el.title = _roTip;
-      el.style.borderLeft = '3px solid #3B82F6';
+      el.style.borderLeft = '3px solid #0E9F8E';
       el.style.background = 'var(--cream)';
       el.style.cursor = 'default';
       // readonly 仍可 focus；點下去給個提示，避免老師以為系統壞了
@@ -5917,7 +5919,7 @@ function lockStudentFields(){
     /* ★ FIX v19.5：改為完全不可點（原本是點擊跳 confirm）。
        不用 disabled 屬性，是為了保留原本的選中／未選中配色，
        老師仍看得出學生選了哪一格。 */
-    btn.style.borderLeft = '3px solid #3B82F6';
+    btn.style.borderLeft = '3px solid #0E9F8E';
     btn.style.cursor = 'not-allowed';
     btn.style.opacity = '0.85';
     btn.title = '🔒 此為學生填寫的欄位，老師端唯讀';
