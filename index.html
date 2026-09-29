@@ -1070,6 +1070,60 @@ input[type="date"]{
 <div class="toast" id="toast"></div>
 
 <script>
+/* ═══════════════════════════════════════════════════════════════════════
+   ★ 本機儲存空間隔離（小兒版專用命名空間 'ped_'，與長照版同一套作法）
+   ───────────────────────────────────────────────────────────────────────
+   問題：重症版、小兒版、長照版三套系統都放在同一個網域
+         （https://popololoqoo-wei.github.io/…），瀏覽器的 localStorage
+         是「以網域為單位」共用的，三套系統會互相看到對方的快取
+         （草稿、設定、學期、老師名單等）。
+   解法：把本系統所有 localStorage 的 key 自動加上 'ped_' 前綴，
+         三套系統各用各的空間。程式其他地方完全不用改寫法。
+   搬移：第一次載入新版時，把舊的共用資料中「草稿、紀錄、畫面偏好」
+         複製一份到本系統空間（不刪原資料），避免未送出的草稿消失。
+         系統設定類（學期、名單、設定快取）不搬，一律由後端重新載入，
+         以免把其他系統的設定帶進來。
+   ═══════════════════════════════════════════════════════════════════════ */
+(function(){
+  var NS = 'ped_';
+  var real;
+  try{ real = window.localStorage; }catch(e){ return; }
+  if(!real) return;
+  /* ── 一次性搬移舊資料 ── */
+  try{
+    if(real.getItem(NS+'__ns_migrated')===null){
+      var MOVE=['form_drafts','history_logs','recently_deleted_fields','register_log','user_feedbacks','teacher_term_collapsed','__dev_mode'];
+      var all=[]; for(var i=0;i<real.length;i++){ var k0=real.key(i); if(k0) all.push(k0); }
+      all.forEach(function(k){
+        if(MOVE.indexOf(k)<0 && k.indexOf('collGrp:')!==0) return;
+        try{ if(real.getItem(NS+k)===null){ var v=real.getItem(k); if(v!==null) real.setItem(NS+k,v); } }catch(e){}
+      });
+      real.setItem(NS+'__ns_migrated', new Date().toISOString());
+    }
+  }catch(e){}
+  var shim = {
+    getItem   : function(k){ try{ return real.getItem(NS+k); }catch(e){ return null; } },
+    setItem   : function(k,v){ try{ return real.setItem(NS+k,v); }catch(e){} },
+    removeItem: function(k){ try{ return real.removeItem(NS+k); }catch(e){} },
+    key       : function(i){ try{ var ks=nsKeys(); return i<ks.length?ks[i]:null; }catch(e){ return null; } },
+    clear     : function(){ try{ nsKeys().forEach(function(k){ real.removeItem(NS+k); }); }catch(e){} }
+  };
+  function nsKeys(){
+    var out=[];
+    for(var i=0;i<real.length;i++){
+      var k=real.key(i);
+      if(k && k.indexOf(NS)===0 && k!==NS+'__ns_migrated') out.push(k.substring(NS.length));
+    }
+    return out;
+  }
+  Object.defineProperty(shim,'length',{ get:function(){ try{ return nsKeys().length; }catch(e){ return 0; } } });
+  try{
+    Object.defineProperty(window,'localStorage',{ configurable:true, get:function(){ return shim; } });
+  }catch(e){
+    try{ window.localStorage = shim; }catch(e2){}
+  }
+})();
+
 /* ═══════════ STATE ═══════════ */
 const ADMIN_EMAIL='popololoqoo@gmail.com';
 const SHEETS_URL='https://docs.google.com/spreadsheets/d/15hCQQvQhKxGTPC7ZH6u9C-v5b6Ii-zU1Y3xrw2Agmgg/edit?gid=0#gid=0';
@@ -1118,17 +1172,17 @@ function getSessionToken(){
 }
 function clearSession(){
   SESSION_TOKEN = null; SESSION_EXPIRES_AT = 0;
-  try{ sessionStorage.removeItem('ep_session'); }catch(e){}
+  try{ sessionStorage.removeItem('ped_ep_session'); }catch(e){}
 }
 function saveSession(token, expiresInSec){
   SESSION_TOKEN = token;
   SESSION_EXPIRES_AT = Date.now() + (expiresInSec || 8*3600) * 1000;
   // 用 sessionStorage 而非 localStorage，分頁關閉就消失
-  try{ sessionStorage.setItem('ep_session', JSON.stringify({t:token, e:SESSION_EXPIRES_AT})); }catch(e){}
+  try{ sessionStorage.setItem('ped_ep_session', JSON.stringify({t:token, e:SESSION_EXPIRES_AT})); }catch(e){}
 }
 function restoreSession(){
   try{
-    const raw = sessionStorage.getItem('ep_session');
+    const raw = sessionStorage.getItem('ped_ep_session');
     if(!raw) return;
     const o = JSON.parse(raw);
     if(o && o.t && o.e && o.e > Date.now()){
