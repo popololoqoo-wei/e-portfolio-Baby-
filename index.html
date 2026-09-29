@@ -6700,7 +6700,41 @@ function saveForm(id, silent){
 }
 
 /* ── 將表單資料存到 GAS（共享給所有人） ── */
-async function saveFormToSheets(id){
+/* ═══ ★ 同步機制改善（2026-09）：追蹤「正在上傳雲端」的儲存 ═══
+   手動同步前要先確定本機的變更都已送達雲端，否則下載雲端版本時
+   會蓋掉剛剛才填、還沒上傳完成的內容。這裡只「記錄」上傳進度，
+   上傳本身的邏輯完全沒變。 */
+var _cloudSavePending = [];   // 每筆為 Promise<boolean>（true=成功）
+function _trackCloudSave(p){
+  if(!p || typeof p.then!=='function') return p;
+  var w = Promise.resolve(p).then(function(v){ return v!==false; }, function(){ return false; });
+  _cloudSavePending.push(w);
+  w.then(function(){ var i=_cloudSavePending.indexOf(w); if(i>=0) _cloudSavePending.splice(i,1); });
+  return p;
+}
+/* 立刻送出所有「正在倒數」的自動儲存，並等待全部上傳完成。
+   回傳 true = 全部成功（或本來就沒有要上傳的）；false = 有失敗或逾時 */
+async function _flushAndWaitCloudSaves(maxMs){
+  try{ if(typeof flushAllPendingAutoSaves==='function') flushAllPendingAutoSaves(); }catch(e){}
+  var deadline = Date.now() + (maxMs||15000);
+  var allOk = true;
+  // 儲存分兩段（先讀雲端合併、再寫入），寫入那段會在第一段結束後才登記，所以要多等幾輪
+  for(var round=0; round<5 && _cloudSavePending.length; round++){
+    var snap = _cloudSavePending.slice();
+    var remain = deadline - Date.now();
+    if(remain<=0) return false;
+    var results = await Promise.race([
+      Promise.all(snap),
+      new Promise(function(r){ setTimeout(function(){ r(null); }, remain); })
+    ]);
+    if(results===null) return false;
+    if(results.some(function(x){ return x===false; })) allOk=false;
+  }
+  return allOk && _cloudSavePending.length===0;
+}
+function saveFormToSheets(id){ return _trackCloudSave(_saveFormToSheetsImpl(id)); }
+
+async function _saveFormToSheetsImpl(id){
   // id 可能是裸 formId 或 formKey，統一處理
   // saveForm 呼叫時傳的是 formKey（含學號）
   const formKey=id; // saveForm已傳formKey
@@ -6786,26 +6820,28 @@ async function saveFormToSheets(id){
   // 【改用 fetch + text/plain 避免 CORS preflight】
   // 舊版用 iframe form submit 的問題：無法接收後端回應、無法判斷成功失敗
   try{
-    fetch(GAS_URL, {
+    _trackCloudSave(fetch(GAS_URL, {
       method:'POST',
       headers:{'Content-Type':'text/plain'},
       body: JSON.stringify(payload),
       mode:'cors'
     }).then(r=>r.ok?r.json():null).then(data=>{
+      if(!data) return false;   // 後端沒有正常回應 → 視為失敗，墓碑保留下次再試
       if(data && data.error){
         console.warn('[Backend] saveForm rejected:', data.error);
         if(data.error.indexOf('token')>=0 || data.error.indexOf('expired')>=0){
           toast('⚠ 登入逾時，請重新登入', false);
           clearSession();
         }
-        return;   // 失敗 → 墓碑保留，下次再試
+        return false;   // 失敗 → 墓碑保留，下次再試
       }
       /* ★ FIX v19.5：雲端已確認收下（刪除的欄位不在 payload 裡了），
          墓碑任務完成即撤銷，避免它在接下來 24 小時內誤刪別台裝置填回的值。 */
       if(_appliedTombstones.length && typeof unmarkFieldDeleted==='function'){
         _appliedTombstones.forEach(function(k){ unmarkFieldDeleted(formKey, k); });
       }
-    }).catch(e=>console.warn('saveFormToSheets error:',e));
+      return true;
+    }).catch(e=>{ console.warn('saveFormToSheets error:',e); return false; }));
   }catch(e){console.warn('saveFormToSheets error:',e);}
 }
 
@@ -6990,6 +7026,9 @@ async function loadAllFormsFromSheets(replaceMode){
   // ★ 優化:用新的 loadAllForms API 一次抓所有表單(取代 33 次請求)
   //   後端不支援的話,自動 fallback 回原本逐一抓的方式
   //   ★ v19.1:改用 POST 避免 GAS Web 部署對新增 GET action 的快取怪症
+  // ★ 手動同步（replaceMode）時，逾時或網路錯誤會自動再試一次（後端冷啟動常見）
+  var _attempts = replaceMode ? 2 : 1;
+  for(var _at=1; _at<=_attempts; _at++){
   try{
     var controller = new AbortController();
     var tid = setTimeout(function(){controller.abort();}, 12000);
@@ -7053,16 +7092,20 @@ async function loadAllFormsFromSheets(replaceMode){
           localStorage.setItem('history_logs', JSON.stringify(_sanitizeStoreForBackup(APP.historyLog)));
         }catch(e){}
         console.log('[loadAllForms] 一次載入 ' + Object.keys(data.forms).length + ' 份表單');
-        return;
+        return {ok:true, count:Object.keys(data.forms).length, source:'batch'};
       }
+      // resp.ok 但沒有 data.forms → 後端不支援批次 API，不重試，直接走舊版逐張抓取
+      console.warn('[loadAllForms] 後端未支援新 API,回退到逐張抓取');
+      break;
     }
-    // resp.ok 但沒有 data.forms → fall through 到舊版邏輯
-    console.warn('[loadAllForms] 後端未支援新 API,回退到逐張抓取');
+    console.warn('[loadAllForms] 後端回應錯誤 ' + resp.status + (_at<_attempts ? '，再試一次' : ''));
   }catch(e){
-    console.warn('[loadAllForms] 失敗,回退到逐張抓取:', e.name||e);
+    console.warn('[loadAllForms] 失敗' + (_at<_attempts ? '，再試一次' : ',回退到逐張抓取') + ':', e.name||e);
+  }
   }
 
   // ── 舊版 fallback:逐一抓取(後端尚未部署新 API 時使用)──
+  var _fbReached = 0, _fbLoaded = 0;   // 成功連上雲端的次數 / 實際有資料的表單數
   var allFormIds = FORMS.map(function(f){ return f.id; });
   var loadPromises = [];
 
@@ -7078,7 +7121,9 @@ async function loadAllFormsFromSheets(replaceMode){
           clearTimeout(tid);
           if(!resp.ok) return;
           var data = await resp.json();
+          _fbReached++;
           if(data.formData){
+            _fbLoaded++;
             try{
               var loaded = JSON.parse(data.formData);
               if(replaceMode){
@@ -7128,6 +7173,7 @@ async function loadAllFormsFromSheets(replaceMode){
     localStorage.setItem('form_drafts', JSON.stringify(_sanitizeStoreForBackup(APP.formData)));
     localStorage.setItem('history_logs', JSON.stringify(_sanitizeStoreForBackup(APP.historyLog)));
   }catch(e){}
+  return {ok:_fbReached>0, count:_fbLoaded, source:'fallback'};
 }
 
 /* ═══════════ 🔍 診斷模式秘技觸發 ═══════════
@@ -7347,24 +7393,46 @@ async function runDiagnostic(){
 /* ── 手動同步按鈕 ── */
 async function manualSync(){
   if(!APP.currentUser){ toast('請先登入'); return; }
+  // ★ 沒有選定學生時，系統不知道要同步誰的表單 → 直接提示，不假裝成功
+  var _syncSid = APP.currentRole==='student' ? APP.currentUser.sid : (APP.currentStudentId || null);
+  if(!_syncSid){
+    toast(APP.currentRole==='admin'
+      ? '管理員頁面沒有表單可同步；請先點選一位學生，再按同步'
+      : '請先點選一位學生，再按同步', false, 3500);
+    return;
+  }
   var btn = document.getElementById('btn-sync');
   if(btn){ btn.disabled=true; btn.textContent='⏳ 同步中...'; }
   try{
-    // ★ 手動同步:走「整份替換」模式,真的把雲端最新版本拉下來蓋掉本機
-    //   (一般載入是 merge 保留本機草稿;但手動同步代表「我要看別台裝置最新進度」)
-    await loadAllFormsFromSheets(true);
-    toast('✓ 已從雲端載入最新資料');
+    // ① 先把本機「正在倒數、還沒上傳」的變更立刻送上雲端，並等上傳完成
+    //    （只送倒數中的那幾份，不會把本機所有舊資料推上去）
+    var upOk = await _flushAndWaitCloudSaves(15000);
+    if(!upOk){
+      toast('⚠ 本機有資料尚未成功上傳雲端，為避免覆蓋，這次先不下載。請檢查網路後再按一次同步', false, 5000);
+      return;
+    }
+    // ② 從雲端下載最新版本（逾時會自動再試一次）
+    var res = await loadAllFormsFromSheets(true);
+    if(!res || !res.ok){
+      toast('⚠ 雲端沒有回應，資料未更新，請稍後再按一次同步', false, 4500);
+      return;
+    }
     if(APP.currentFormId && !APP.currentFormId.startsWith('__')){
       openForm(APP.currentFormId);
     } else if(APP.currentRole==='admin'){
       renderAdmin();
     } else if(APP.currentRole==='teacher'){
-      renderTeacherHome();
+      // ★ 老師正在看某位學生的表單清單時，同步後留在該生頁面（舊版會跳回老師首頁，看不到進度）
+      if(APP.currentStudentId && typeof selectStudent==='function') selectStudent(APP.currentStudentId);
+      else renderTeacherHome();
     } else {
       renderFormList();
     }
     renderSidebar();
     updateQuickNav();
+    // ③ 如實回報結果
+    toast(res.count>0 ? ('✓ 已從雲端更新 ' + res.count + ' 份表單')
+                      : '✓ 同步完成（雲端目前沒有這位學生的表單資料）', true, 3000);
   }catch(e){
     toast('同步失敗，請檢查網路', false);
   }finally{
