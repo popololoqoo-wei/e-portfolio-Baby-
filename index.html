@@ -8655,6 +8655,11 @@ function buildPDFContent(id,f,d,val,row,section,studentName,studentSchool,chk){
     html+=pdfR('實習類別',val('intern_cat'),false);
     html+='</table>';
     // ── D03 額外的呼吸器機型欄位 ──
+    if(dopsData&&dopsData.machineOpts&&dopsData.machineOpts.length){
+      var _pm=val('machine');
+      var _pmTxt=(dopsData.machineLabel?dopsData.machineLabel+'：':'')+dopsData.machineOpts.map(function(m){return (m===_pm?'☑':'☐')+m;}).join('　');
+      html+='<table>'+pdfR('呼吸器機型',_pmTxt,false)+'</table>';
+    }
     if(dopsData&&dopsData.extra){
       html+='<div style="background:#FFF8E7;border:1px solid #E0CFA0;border-radius:4px;padding:6px 10px;margin:6px 0;font-size:10pt;color:#8B6914;">'+dopsData.extra+'</div>';
     }
@@ -11755,8 +11760,8 @@ const DOPS_DATA={
   },
   D02:{
     topic:'呼吸器技術操作(Neonatal)Servo系列',
-    extra:'呼吸器機型：□Drager系列(VN/V)　□Servo系列(N/U)',
-    machineOpts:['Drager系列(VN/V)','Servo系列(N/U)'],
+    machineLabel:'Servo系列',
+    machineOpts:['I','N','U'],
     groups:[
       {hd:'呼吸器使用前',items:[
         '1. 確認醫囑',
@@ -11794,7 +11799,7 @@ const DOPS_DATA={
 };
 
 /* D06：呼吸器技術操作(Neonatal)Drager系列 —— 評核內容與 D02(Servo系列)完全相同，只換主題名稱 */
-DOPS_DATA.D06 = Object.assign({}, DOPS_DATA.D02, {topic:'呼吸器技術操作(Neonatal)Drager系列'});
+DOPS_DATA.D06 = Object.assign({}, DOPS_DATA.D02, {topic:'呼吸器技術操作(Neonatal)Drager系列', machineLabel:'Drager系列', machineOpts:['VN','V']});
 
 function buildDOPS(f,d,canT,fkey,canS){
   const fid=fkey||f.id;
@@ -11807,7 +11812,8 @@ function buildDOPS(f,d,canT,fkey,canS){
       var _mo="APP.formData['"+fid+"']=APP.formData['"+fid+"']||{};APP.formData['"+fid+"']['machine']='"+m+"';saveDraftField('"+fid+"','machine','"+m+"')";
       return '<label class="check-item"><input type="radio" name="'+fid+'_machine" data-fid="'+fid+'" data-key="machine" '+_mc+' onchange="'+_mo+'" style="accent-color:#0E9F8E;"> '+m+'</label>';
     }).join('');
-    _mx='<div class="field"><label>呼吸器機型（此份評核所考機型）</label><div class="check-group">'+_mh+'</div></div>';
+    var _ml=data.machineLabel?'<span style="font-weight:600;margin-right:4px;align-self:center;">'+data.machineLabel+'：</span>':'';
+    _mx='<div class="field"><label>呼吸器機型（此份評核所考機型）</label><div class="check-group">'+_ml+_mh+'</div></div>';
   }
   let h=basicInfoCard(fid,d,_mx,'',false,true)+evalDateCard(fid,canT);
   let itemIdx=0;
